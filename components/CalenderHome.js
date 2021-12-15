@@ -1,4 +1,4 @@
-import React, { Component, useState } from "react";
+import React, { Component, useState, useContext } from "react";
 import {
   StyleSheet,
   Text,
@@ -11,10 +11,110 @@ import {
 import { Agenda } from "react-native-calendars";
 import Colors from "../constants/Colors";
 import { Avatar } from "react-native-elements";
+import { AuthContext } from "../navigation/AuthProvider";
+import firebase from "../components/firebase";
+import { useFocusEffect } from "@react-navigation/native";
 
 let screenHeight = Dimensions.get("window").height;
 const CalenderHome = (props) => {
   const [selected, setSelected] = useState();
+  const [userInfo, setUserInfo] = useState();
+  const [reserves, setReserves] = useState();
+  const [isLoading, setIsLoading] = useState();
+
+  const things = {
+    "2021-11-22": [{ name: "carlos", type: "Espalda" }],
+    "2021-11-24": [
+      { time: "9:00AM - 10:00AM", name: "Gabo", type: "Masaje" },
+      { time: "10:00AM - 11:00AM", name: "Carlos", type: "Masaje" },
+      { time: "11:00AM - 12:00AM", name: "Jeff", type: "Rehabilitacion" },
+    ],
+    "2021-11-25": [
+      { time: "8:00AM - 9:00AM", name: "Kiki", type: "Rehabilitacion" },
+    ],
+    "2021-11-26": [],
+    "2021-11-27": [
+      { time: "10:00AM - 11:00AM", name: "Diego", type: "Masaje" },
+    ],
+  };
+
+  useFocusEffect(
+    React.useCallback(() => {
+      setIsLoading(true);
+      // const month = bookParam.bookingDate.month.toString();
+      // const date = bookParam.bookingDate.dateString;
+      // const year = bookParam.bookingDate.year.toString();
+
+      const fetchSlots = async () => {
+        try {
+          const list = [];
+          let mark = {};
+          await firebase
+            .firestore()
+            .collection(`Mayra`)
+            .get()
+            .then((querySnapshot) => {
+              querySnapshot.forEach((doc) => {
+                console.log("doc id loaded", doc.id);
+                const { userDataJson } = doc.data();
+
+                const keyss = Object.keys(doc.data().userDataJson);
+                // console.log("i got the keys", keyss);
+                list.push(doc.id);
+
+                list.forEach((day) => {
+                  mark[day] = [
+                    {
+                      time: "9:00AM - 10:00AM",
+                      name: "carlos",
+                      type: "Rehabilitacion",
+                    },
+                  ];
+                });
+
+                // list.push({
+                //   date: doc.id,
+                //   Data: userDataJson,
+                // });
+              });
+              // console.log("listing", mark);
+              setReserves(mark);
+            });
+        } catch (e) {
+          console.log(e);
+        }
+      };
+
+      const fetchMembers = async () => {
+        try {
+          const list = [];
+          await firebase
+            .firestore()
+            .collection("Members")
+            .get()
+            .then((querySnapshot) => {
+              querySnapshot.forEach((doc) => {
+                const { FirstName, LastName, Age, Cell } = doc.data();
+                list.push({
+                  key: doc.id,
+                  Name: FirstName,
+                  Last: LastName,
+                  Cell: Cell,
+                  Age: Age,
+                });
+              });
+            });
+          // console.log(list);
+          setUserInfo(list);
+        } catch (e) {
+          console.log(e);
+        }
+      };
+
+      fetchSlots();
+      fetchMembers();
+    }, [])
+  );
 
   const onDayPress = (day) => {
     const time = day.timestamp + 10 * 24 * 60 * 60 * 1000;
@@ -42,21 +142,22 @@ const CalenderHome = (props) => {
       onDayPress={(day) => {
         onDayPress(day);
       }}
-      items={{
+      items={
+        reserves
         // "2021-11-22": [{ name: "carlos", type: "Espalda" }],
-        "2021-11-24": [
-          { time: "9:00AM - 10:00AM", name: "Gabo", type: "Masaje" },
-          { time: "10:00AM - 11:00AM", name: "Carlos", type: "Masaje" },
-          { time: "11:00AM - 12:00AM", name: "Jeff", type: "Rehabilitacion" },
-        ],
-        "2021-11-25": [
-          { time: "8:00AM - 9:00AM", name: "Kiki", type: "Rehabilitacion" },
-        ],
-        "2021-11-26": [],
-        "2021-11-27": [
-          { time: "10:00AM - 11:00AM", name: "Diego", type: "Masaje" },
-        ],
-      }}
+        // "2021-11-24": [
+        //   { time: "9:00AM - 10:00AM", name: "Gabo", type: "Masaje" },
+        //   { time: "10:00AM - 11:00AM", name: "Carlos", type: "Masaje" },
+        //   { time: "11:00AM - 12:00AM", name: "Jeff", type: "Rehabilitacion" },
+        // ],
+        // "2021-11-25": [
+        //   { time: "8:00AM - 9:00AM", name: "Kiki", type: "Rehabilitacion" },
+        // ],
+        // "2021-11-26": [],
+        // "2021-11-27": [
+        //   { time: "10:00AM - 11:00AM", name: "Diego", type: "Masaje" },
+        // ],
+      }
       style={styles.calendar}
       // hideExtraDays
       // markedDates={{ [selected]: { selected: true } }}

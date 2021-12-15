@@ -22,7 +22,7 @@ const HomeTabs = () => {
     <Tab.Navigator
       screenOptions={{
         tabBarActiveTintColor: Colors.primary,
-        // headerShown: true,
+        headerShown: false,
         tabBarLabelStyle: { fontSize: 12 },
         tabBarStyle: [
           {
