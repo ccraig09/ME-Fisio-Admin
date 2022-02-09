@@ -114,6 +114,7 @@ const AppStack = () => {
           headerShown: true,
           animation: "fade",
           title: "Citas",
+          headerShown: false,
           headerTintColor: "#25a2d5",
         }}
       />

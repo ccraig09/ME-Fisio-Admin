@@ -14,6 +14,7 @@ import { Avatar } from "react-native-elements";
 import { AuthContext } from "../navigation/AuthProvider";
 import firebase from "../components/firebase";
 import { useFocusEffect } from "@react-navigation/native";
+import { Appbar } from "react-native-paper";
 
 let screenHeight = Dimensions.get("window").height;
 const CalenderHome = (props) => {
@@ -22,21 +23,21 @@ const CalenderHome = (props) => {
   const [reserves, setReserves] = useState();
   const [isLoading, setIsLoading] = useState();
 
-  const things = {
-    "2021-11-22": [{ name: "carlos", type: "Espalda" }],
-    "2021-11-24": [
-      { time: "9:00AM - 10:00AM", name: "Gabo", type: "Masaje" },
-      { time: "10:00AM - 11:00AM", name: "Carlos", type: "Masaje" },
-      { time: "11:00AM - 12:00AM", name: "Jeff", type: "Rehabilitacion" },
-    ],
-    "2021-11-25": [
-      { time: "8:00AM - 9:00AM", name: "Kiki", type: "Rehabilitacion" },
-    ],
-    "2021-11-26": [],
-    "2021-11-27": [
-      { time: "10:00AM - 11:00AM", name: "Diego", type: "Masaje" },
-    ],
-  };
+  // const things = {
+  //   "2021-11-22": [{ name: "carlos", type: "Espalda" }],
+  //   "2021-11-24": [
+  //     { time: "9:00AM - 10:00AM", name: "Gabo", type: "Masaje" },
+  //     { time: "10:00AM - 11:00AM", name: "Carlos", type: "Masaje" },
+  //     { time: "11:00AM - 12:00AM", name: "Jeff", type: "Rehabilitacion" },
+  //   ],
+  //   "2021-11-25": [
+  //     { time: "8:00AM - 9:00AM", name: "Kiki", type: "Rehabilitacion" },
+  //   ],
+  //   "2021-11-26": [],
+  //   "2021-11-27": [
+  //     { time: "10:00AM - 11:00AM", name: "Diego", type: "Masaje" },
+  //   ],
+  // };
 
   useFocusEffect(
     React.useCallback(() => {
@@ -51,35 +52,45 @@ const CalenderHome = (props) => {
           let mark = {};
           await firebase
             .firestore()
-            .collection(`Mayra`)
+            .collection(`Notifications`)
+            .doc("Mayra")
             .get()
-            .then((querySnapshot) => {
-              querySnapshot.forEach((doc) => {
-                console.log("doc id loaded", doc.id);
-                const { userDataJson } = doc.data();
-
-                const keyss = Object.keys(doc.data().userDataJson);
-                // console.log("i got the keys", keyss);
-                list.push(doc.id);
-
-                list.forEach((day) => {
-                  mark[day] = [
-                    {
-                      time: "9:00AM - 10:00AM",
-                      name: "carlos",
-                      type: "Rehabilitacion",
-                    },
-                  ];
-                });
-
-                // list.push({
-                //   date: doc.id,
-                //   Data: userDataJson,
-                // });
-              });
-              // console.log("listing", mark);
-              setReserves(mark);
+            .then((doc) => {
+              if (doc.exists) {
+                // console.log("Document data:", doc.data());
+                setReserves(doc.data());
+              } else {
+                // doc.data() will be undefined in this case
+                console.log("No such document!");
+              }
             });
+          // .then((querySnapshot) => {
+          //   querySnapshot.forEach((doc) => {
+          //     console.log("doc data loaded", doc.data());
+          //     // const { userDataJson } = doc.data();
+
+          //     // const keyss = Object.keys(doc.data().userDataJson);
+          //     // console.log("i got the keys", keyss);
+          //     // list.push(doc.id);
+
+          //     // list.forEach((day) => {
+          //     //   mark[day] = [
+          //     //     {
+          //     //       time: "9:00AM - 10:00AM",
+          //     //       name: "carlos",
+          //     //       type: "Rehabilitacion",
+          //     //     },
+          //     //   ];
+          //     // });
+
+          //     // list.push({
+          //     //   date: doc.id,
+          //     //   Data: userDataJson,
+          //     // });
+          //   });
+          //   // console.log("listing", mark);
+          //   setReserves(doc.data());
+          // });
         } catch (e) {
           console.log(e);
         }
@@ -116,6 +127,56 @@ const CalenderHome = (props) => {
     }, [])
   );
 
+  const refreshSlots = async () => {
+    try {
+      const list = [];
+      let mark = {};
+      await firebase
+        .firestore()
+        .collection(`Notifications`)
+        .doc("Mayra")
+        .get()
+        .then((doc) => {
+          if (doc.exists) {
+            console.log("Document data:", doc.data());
+            setReserves(doc.data());
+          } else {
+            // doc.data() will be undefined in this case
+            console.log("No such document!");
+          }
+        });
+      // .then((querySnapshot) => {
+      //   querySnapshot.forEach((doc) => {
+      //     console.log("doc data loaded", doc.data());
+      //     // const { userDataJson } = doc.data();
+
+      //     // const keyss = Object.keys(doc.data().userDataJson);
+      //     // console.log("i got the keys", keyss);
+      //     // list.push(doc.id);
+
+      //     // list.forEach((day) => {
+      //     //   mark[day] = [
+      //     //     {
+      //     //       time: "9:00AM - 10:00AM",
+      //     //       name: "carlos",
+      //     //       type: "Rehabilitacion",
+      //     //     },
+      //     //   ];
+      //     // });
+
+      //     // list.push({
+      //     //   date: doc.id,
+      //     //   Data: userDataJson,
+      //     // });
+      //   });
+      //   // console.log("listing", mark);
+      //   setReserves(doc.data());
+      // });
+    } catch (e) {
+      console.log(e);
+    }
+  };
+
   const onDayPress = (day) => {
     const time = day.timestamp + 10 * 24 * 60 * 60 * 1000;
     dateStr(time);
@@ -131,104 +192,150 @@ const CalenderHome = (props) => {
   };
 
   return (
-    <Agenda
-      onVisibleMonthsChange={(months) => {
-        // console.log("now these months are visible", months);
+    <SafeAreaView
+      style={{
+        flex: 1,
+        // backgroundColor: Colors.primaryColor,
+        padding: 5,
+        paddingTop: 8,
+        // alignItems: "center",
       }}
-      pastScrollRange={50}
-      futureScrollRange={50}
-      // scrollEnabled={true}
-      showScrollIndicator={true}
-      onDayPress={(day) => {
-        onDayPress(day);
-      }}
-      items={
-        reserves
-        // "2021-11-22": [{ name: "carlos", type: "Espalda" }],
-        // "2021-11-24": [
-        //   { time: "9:00AM - 10:00AM", name: "Gabo", type: "Masaje" },
-        //   { time: "10:00AM - 11:00AM", name: "Carlos", type: "Masaje" },
-        //   { time: "11:00AM - 12:00AM", name: "Jeff", type: "Rehabilitacion" },
-        // ],
-        // "2021-11-25": [
-        //   { time: "8:00AM - 9:00AM", name: "Kiki", type: "Rehabilitacion" },
-        // ],
-        // "2021-11-26": [],
-        // "2021-11-27": [
-        //   { time: "10:00AM - 11:00AM", name: "Diego", type: "Masaje" },
-        // ],
-      }
-      style={styles.calendar}
-      // hideExtraDays
-      // markedDates={{ [selected]: { selected: true } }}
-      markedDates={{
-        // "2021-11-16": { selected: true, marked: true },
-        "2012-05-17": { marked: true },
-        // "2021-11-20": { disabled: true },
-        // "2021-11-21": { disabled: true },
-        // "2021-11-27": { disabled: true },
-      }}
-      theme={{
-        selectedDayBackgroundColor: Colors.primary,
-        todayTextColor: Colors.primary,
-        arrowColor: Colors.primary,
-      }}
-      onRefresh={() => console.log("refreshing...")}
-      renderItem={(item, firstItemInDay) => {
-        return (
-          <View style={styles.itemView}>
-            <View>
-              <TouchableOpacity onPress={() => alert(item.name)}>
-                <Text style={styles.itemTime}>{item.time}</Text>
-                <Text style={styles.itemName}>{item.name}</Text>
-                <Text style={styles.itemType}>{item.type}</Text>
-              </TouchableOpacity>
+    >
+      <Appbar.Header
+        style={{
+          width: "100%",
+          //height:?
+          backgroundColor: Colors.primary,
+          borderBottomLeftRadius: 50,
+        }}
+      >
+        {/* <Appbar.Action
+          icon="arrow-left"
+          color={Colors.primaryColor}
+          onPress={() => navigation.goBack()}
+        /> */}
+        {/* <Avatar.Text size={24} label="XD" /> */}
+        <Appbar.Content
+          title="ME Fisio"
+          titleStyle={{
+            fontWeight: "bold",
+            fontSize: 25,
+            color: "white",
+          }}
+        />
+        <Appbar.Action icon="dots-vertical" onPress={null} color={"white"} />
+        {/* title="ME Fisio"
+          titleStyle={{
+            fontWeight: "bold",
+            fontSize: 25,
+            color: "white",
+          }} */}
+        {/* /> */}
+      </Appbar.Header>
+
+      <Agenda
+        onVisibleMonthsChange={(months) => {
+          // console.log("now these months are visible", months);
+        }}
+        pastScrollRange={50}
+        futureScrollRange={50}
+        // scrollEnabled={true}
+        showScrollIndicator={true}
+        onDayPress={(day) => {
+          onDayPress(day);
+        }}
+        items={
+          reserves
+          // "2021-11-22": [{ name: "carlos", type: "Espalda" }],
+          // "2021-11-24": [
+          //   { time: "9:00AM - 10:00AM", name: "Gabo", type: "Masaje" },
+          //   { time: "10:00AM - 11:00AM", name: "Carlos", type: "Masaje" },
+          //   { time: "11:00AM - 12:00AM", name: "Jeff", type: "Rehabilitacion" },
+          // ],
+          // "2021-11-25": [
+          //   { time: "8:00AM - 9:00AM", name: "Kiki", type: "Rehabilitacion" },
+          // ],
+          // "2021-11-26": [],
+          // "2021-11-27": [
+          //   { time: "10:00AM - 11:00AM", name: "Diego", type: "Masaje" },
+          // ],
+        }
+        style={styles.calendar}
+        // hideExtraDays
+        // markedDates={{ [selected]: { selected: true } }}
+
+        markedDates={{
+          // "2021-11-16": { selected: true, marked: true },
+          "2022-03-02": { marked: true },
+          "2022-03-03": { marked: true },
+          // "2021-11-20": { disabled: true },
+          // "2021-11-21": { disabled: true },
+          // "2021-11-27": { disabled: true },
+        }}
+        theme={{
+          selectedDayBackgroundColor: Colors.primary,
+          todayTextColor: Colors.primary,
+          arrowColor: Colors.primary,
+        }}
+        onRefresh={() => {
+          refreshSlots();
+        }}
+        renderItem={(item, firstItemInDay) => {
+          return (
+            <View style={styles.itemView}>
+              <View>
+                <TouchableOpacity onPress={() => alert(item.name)}>
+                  <Text style={styles.itemTime}>{item.Time}</Text>
+                  <Text style={styles.itemName}>{item.Name}</Text>
+                  <Text style={styles.itemType}>{item.Type}</Text>
+                </TouchableOpacity>
+              </View>
+              <View style={styles.itemAvatarView}>
+                <Avatar
+                  rounded
+                  // avatarStyle={{backgroundColor: 'silver'}}
+                  size={80}
+                  activeOpacity={0.7}
+                  // title={"cc"}
+                  // title={`${
+                  //   typeof userInfo.Nombre === 'undefined'
+                  //     ? null
+                  //     : userInfo.Nombre.charAt(0)
+                  // }${
+                  //   typeof userInfo.Apellido === 'undefined'
+                  //     ? null
+                  //     : userInfo.Apellido.charAt(0)
+                  // }
+                  // `}
+                  icon={{ name: "user", type: "font-awesome" }}
+                  source={{}}
+                  containerStyle={{ backgroundColor: "silver" }}
+                  // source={{ uri: `${userInfo.userImg}` }}
+                  // onPress={() => {
+                  //   navigation.navigate('EditClient', {
+                  //     // clientData: selectedClient,
+                  //   });
+                  // }}
+                ></Avatar>
+              </View>
             </View>
-            <View style={styles.itemAvatarView}>
-              <Avatar
-                rounded
-                // avatarStyle={{backgroundColor: 'silver'}}
-                size={80}
-                activeOpacity={0.7}
-                // title={"cc"}
-                // title={`${
-                //   typeof userInfo.Nombre === 'undefined'
-                //     ? null
-                //     : userInfo.Nombre.charAt(0)
-                // }${
-                //   typeof userInfo.Apellido === 'undefined'
-                //     ? null
-                //     : userInfo.Apellido.charAt(0)
-                // }
-                // `}
-                icon={{ name: "user", type: "font-awesome" }}
-                source={{}}
-                containerStyle={{ backgroundColor: "silver" }}
-                // source={{ uri: `${userInfo.userImg}` }}
-                // onPress={() => {
-                //   navigation.navigate('EditClient', {
-                //     // clientData: selectedClient,
-                //   });
-                // }}
-              ></Avatar>
+          );
+        }}
+        renderEmptyData={() => {
+          return (
+            <View
+              style={{
+                justifyContent: "center",
+                alignItems: "center",
+                flex: 1,
+              }}
+            >
+              <Text>No Citas por hoy</Text>
             </View>
-          </View>
-        );
-      }}
-      renderEmptyData={() => {
-        return (
-          <View
-            style={{
-              justifyContent: "center",
-              alignItems: "center",
-              flex: 1,
-            }}
-          >
-            <Text>No Citas por hoy</Text>
-          </View>
-        );
-      }}
-    />
+          );
+        }}
+      />
+    </SafeAreaView>
   );
 };
 

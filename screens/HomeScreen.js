@@ -25,9 +25,9 @@ const HomeScreen = ({ navigation }) => {
   // };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <CalenderHome />
-    </SafeAreaView>
+    // <SafeAreaView style={styles.container}>
+    <CalenderHome />
+    // </SafeAreaView>
   );
 };
 
