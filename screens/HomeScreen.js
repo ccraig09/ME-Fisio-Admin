@@ -12,10 +12,16 @@ import {
 // import { CalendarList } from "react-native-calendars";
 import CalenderHome from "../components/CalenderHome";
 import Colors from "../constants/Colors";
+import { useRoute } from "@react-navigation/native";
+// import { DrawerContent } from "../components/DrawerContent";
 
 let screenHeight = Dimensions.get("window").height;
 
 const HomeScreen = ({ navigation }) => {
+  const route = useRoute();
+  console.log(route.name);
+  // <DrawerContent screenName={route.name} />;
+
   const [selected, setSelected] = useState();
 
   // const onDayPress = (day) => {
@@ -26,7 +32,11 @@ const HomeScreen = ({ navigation }) => {
 
   return (
     // <SafeAreaView style={styles.container}>
-    <CalenderHome />
+    <CalenderHome
+      drawerAction={() => {
+        navigation.openDrawer();
+      }}
+    />
     // </SafeAreaView>
   );
 };

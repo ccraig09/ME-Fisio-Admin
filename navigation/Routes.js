@@ -1,5 +1,7 @@
 import React, { useContext, useState, useEffect } from "react";
-import { NavigationContainer } from "@react-navigation/native";
+import { Text, View } from "react-native";
+
+import { NavigationContainer, DarkTheme } from "@react-navigation/native";
 import firebase from "../components/firebase";
 
 import { AuthContext } from "./AuthProvider";

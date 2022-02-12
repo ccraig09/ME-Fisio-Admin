@@ -14,14 +14,15 @@ import { Avatar } from "react-native-elements";
 import { AuthContext } from "../navigation/AuthProvider";
 import firebase from "../components/firebase";
 import { useFocusEffect } from "@react-navigation/native";
-import { Appbar } from "react-native-paper";
+import { Appbar, Drawer } from "react-native-paper";
 
 let screenHeight = Dimensions.get("window").height;
-const CalenderHome = (props) => {
+const CalenderHome = (props, { navigation }) => {
   const [selected, setSelected] = useState();
   const [userInfo, setUserInfo] = useState();
   const [reserves, setReserves] = useState();
   const [isLoading, setIsLoading] = useState();
+  const [active, setActive] = useState("");
 
   // const things = {
   //   "2021-11-22": [{ name: "carlos", type: "Espalda" }],
@@ -209,6 +210,25 @@ const CalenderHome = (props) => {
           borderBottomLeftRadius: 50,
         }}
       >
+        <Appbar.Action
+          icon="menu"
+          color="white"
+          onPress={() => {
+            props.drawerAction();
+          }}
+        />
+        {/* <Drawer.Section title="Some title">
+          <Drawer.Item
+            label="First Item"
+            active={active === "first"}
+            onPress={() => setActive("first")}
+          />
+          <Drawer.Item
+            label="Second Item"
+            active={active === "second"}
+            onPress={() => setActive("second")}
+          />
+        </Drawer.Section> */}
         {/* <Appbar.Action
           icon="arrow-left"
           color={Colors.primaryColor}
@@ -223,7 +243,7 @@ const CalenderHome = (props) => {
             color: "white",
           }}
         />
-        <Appbar.Action icon="dots-vertical" onPress={null} color={"white"} />
+        {/* <Appbar.Action icon="dots-vertical" onPress={null} color={"white"} /> */}
         {/* title="ME Fisio"
           titleStyle={{
             fontWeight: "bold",

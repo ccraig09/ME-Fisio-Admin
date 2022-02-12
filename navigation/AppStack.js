@@ -7,7 +7,11 @@ import Booking from "../screens/BookingScreen";
 import Slot from "../screens/SlotScreen";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import Colors from "../constants/Colors";
-import Icon from "react-native-vector-icons/Ionicons";
+import Ionicons from "react-native-vector-icons/Ionicons";
+import { createDrawerNavigator } from "@react-navigation/drawer";
+import ClientListScreen from "../screens/ClientListScreen";
+import DrawerContent from "../components/DrawerContent";
+import TabNavigator from "./TabNavigator";
 
 // import Login from '../src/screens/login';
 // import Signup from '../src/screens/signup';
@@ -16,137 +20,131 @@ import Icon from "react-native-vector-icons/Ionicons";
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
-
-const HomeTabs = () => {
-  return (
-    <Tab.Navigator
-      screenOptions={{
-        tabBarActiveTintColor: Colors.primary,
-        headerShown: false,
-        tabBarLabelStyle: { fontSize: 12 },
-        tabBarStyle: [
-          {
-            display: "flex",
-          },
-          null,
-        ],
-      }}
-    >
-      <Tab.Screen
-        name="Home"
-        component={Home}
-        options={({ route }) => ({
-          tabBarLabel: "Citas",
-          tabBarIcon: ({ color, focused }) =>
-            focused ? (
-              <Icon name="ios-calendar" color={color} size={30} />
-            ) : (
-              <Icon name="ios-calendar" color={color} size={26} />
-            ),
-        })}
-      />
-      <Tab.Screen
-        name="Clientes"
-        component={ClientStack}
-        options={{
-          tabBarLabel: "Clientes",
-          tabBarIcon: ({ color, focused }) =>
-            focused ? (
-              <Icon name="people" color={color} size={30} />
-            ) : (
-              <Icon name="people" color={color} size={26} />
-            ),
-        }}
-      />
-      {/*  <Tab.Screen
-        name="Informacion"
-        component={InformationStack}
-        options={{
-          tabBarLabel: "Informacion",
-          tabBarIcon: ({ color, focused }) =>
-            focused ? (
-              <Icon name="information-circle" color={color} size={30} />
-            ) : (
-              <Icon name="information-circle" color={color} size={26} />
-            ),
-        }}
-      /> */}
-    </Tab.Navigator>
-  );
-};
-const ClientStack = () => (
-  <Stack.Navigator>
-    {/* <Stack.Navigator initialRouteName="Home"> */}
-    <Stack.Screen
-      name="Clients"
-      component={ClientListScreen}
-      options={({ navigation }) => ({
-        title: "",
-        headerShown: false,
-      })}
-    />
-    <Stack.Screen
-      name="Client"
-      component={ClientDetailsScreen}
-      options={({ navigation }) => ({
-        title: "Cliente Detalles",
-        headerShown: true,
-      })}
-    />
-    <Stack.Screen
-      name="EditClient"
-      component={EditClientScreen}
-      options={({ navigation }) => ({
-        title: "Editar Cliente",
-        headerShown: true,
-      })}
-    />
-  </Stack.Navigator>
-);
+const Drawer = createDrawerNavigator();
 
 const AppStack = () => {
   return (
-    <Stack.Navigator>
-      <Stack.Screen
-        name="HomeTabs"
-        component={HomeTabs}
+    <Drawer.Navigator
+      drawerContent={(props) => <DrawerContent {...props} />}
+      screenOptions={{
+        headerShown: false,
+        drawerActiveBackgroundColor: Colors.primary,
+        drawerActiveTintColor: "#fff",
+        drawerInactiveTintColor: "#333",
+        drawerLabelStyle: {
+          marginLeft: -25,
+          fontSize: 15,
+        },
+      }}
+      initialRouteName="Inicio"
+    >
+      <Drawer.Screen
+        name="Inicio"
+        component={TabNavigator}
         options={{
-          headerShown: true,
-          animation: "fade",
-          title: "Citas",
-          headerShown: false,
-          headerTintColor: "#25a2d5",
+          drawerIcon: ({ color }) => (
+            <Ionicons name="home-outline" size={22} color={color} />
+          ),
         }}
       />
-      <Stack.Screen
-        name="Details"
-        component={Details}
-        options={{ headerShown: true, animation: "fade" }}
-      />
-      <Stack.Screen
-        name="Pdf"
+      <Drawer.Screen
+        name="Exportar"
         component={Pdf}
-        options={{ headerShown: true, animation: "fade" }}
+        options={{
+          drawerIcon: ({ color }) => (
+            <Ionicons name="share-outline" size={22} color={color} />
+          ),
+        }}
       />
-      <Stack.Screen
-        name="booking"
+      <Drawer.Screen
+        name="Informacion"
         component={Booking}
-        options={{ headerShown: true, animation: "fade" }}
+        options={{
+          drawerIcon: ({ color }) => (
+            <Ionicons
+              name="information-circle-outline"
+              size={22}
+              color={color}
+            />
+          ),
+        }}
       />
-      <Stack.Screen
-        name="Slot"
-        component={Slot}
-        options={{ headerShown: true, animation: "fade" }}
-      />
-      {/* 
-      <Stack.Screen
-        name="Signup"
-        component={Signup}
-        options={{headerShown: false}}
-      />
-      <Stack.Screen name="Wheels" component={Wheels} />
-      <Stack.Screen name="Preguntas" component={Preguntas} /> */}
-    </Stack.Navigator>
+    </Drawer.Navigator>
   );
 };
+// const ClientStack = () => (
+//   <Stack.Navigator>
+//     {/* <Stack.Navigator initialRouteName="Home"> */}
+//     <Stack.Screen
+//       name="Clients"
+//       component={ClientListScreen}
+//       options={({ navigation }) => ({
+//         title: "",
+//         headerShown: false,
+//       })}
+//     />
+//     {/* <Stack.Screen
+//       name="Client"
+//       component={ClientDetailsScreen}
+//       options={({ navigation }) => ({
+//         title: "Cliente Detalles",
+//         headerShown: true,
+//       })}
+//     />
+//     <Stack.Screen
+//       name="EditClient"
+//       component={EditClientScreen}
+//       options={({ navigation }) => ({
+//         title: "Editar Cliente",
+//         headerShown: true,
+//       })}
+//     /> */}
+//   </Stack.Navigator>
+// );
+
+// const AppStack = () => {
+//   return (
+//     <Stack.Navigator>
+//       <Stack.Screen
+//         name="HomeTabs"
+//         component={HomeTabs}
+//         options={{
+//           headerShown: true,
+//           animation: "fade",
+//           title: "Citas",
+//           headerShown: false,
+//           headerTintColor: "#25a2d5",
+//         }}
+//       />
+//       <Stack.Screen
+//         name="Details"
+//         component={Details}
+//         options={{ headerShown: true, animation: "fade" }}
+//       />
+//       <Stack.Screen
+//         name="Pdf"
+//         component={Pdf}
+//         options={{ headerShown: true, animation: "fade" }}
+//       />
+//       <Stack.Screen
+//         name="booking"
+//         component={Booking}
+//         options={{ headerShown: true, animation: "fade" }}
+//       />
+//       <Stack.Screen
+//         name="Slot"
+//         component={Slot}
+//         options={{ headerShown: true, animation: "fade" }}
+//       />
+//       {/*
+//       <Stack.Screen
+//         name="Signup"
+//         component={Signup}
+//         options={{headerShown: false}}
+//       />
+//       <Stack.Screen name="Wheels" component={Wheels} />
+//       <Stack.Screen name="Preguntas" component={Preguntas} /> */}
+//     </Stack.Navigator>
+//   );
+// };
 export default AppStack;
