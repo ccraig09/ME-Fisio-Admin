@@ -7,6 +7,7 @@ import {
   StatusBar,
   SafeAreaView,
   Dimensions,
+  Image,
 } from "react-native";
 import { Agenda } from "react-native-calendars";
 import Colors from "../constants/Colors";
@@ -21,6 +22,7 @@ const CalenderHome = (props, { navigation }) => {
   const [selected, setSelected] = useState();
   const [userInfo, setUserInfo] = useState();
   const [reserves, setReserves] = useState();
+  const [marks, setMarks] = useState();
   const [isLoading, setIsLoading] = useState();
   const [active, setActive] = useState("");
 
@@ -47,9 +49,34 @@ const CalenderHome = (props, { navigation }) => {
       // const date = bookParam.bookingDate.dateString;
       // const year = bookParam.bookingDate.year.toString();
 
+      const fetchMarkedDates = async () => {
+        try {
+          const list = [];
+          let mark = {};
+          await firebase
+            .firestore()
+            .collection(`Notifications`)
+            .doc("Mayra")
+            .collection("Marked Dates")
+            .doc("marked")
+            .get()
+            .then((doc) => {
+              if (doc.exists) {
+                // console.log("Document data:", doc.data());
+                setMarks(doc.data());
+              } else {
+                // doc.data() will be undefined in this case
+                console.log("No such document!");
+              }
+            });
+        } catch (e) {
+          console.log(e);
+        }
+      };
       const fetchSlots = async () => {
         try {
           const list = [];
+          let data;
           let mark = {};
           await firebase
             .firestore()
@@ -59,6 +86,7 @@ const CalenderHome = (props, { navigation }) => {
             .then((doc) => {
               if (doc.exists) {
                 // console.log("Document data:", doc.data());
+
                 setReserves(doc.data());
               } else {
                 // doc.data() will be undefined in this case
@@ -122,7 +150,7 @@ const CalenderHome = (props, { navigation }) => {
           console.log(e);
         }
       };
-
+      fetchMarkedDates();
       fetchSlots();
       fetchMembers();
     }, [])
@@ -195,6 +223,7 @@ const CalenderHome = (props, { navigation }) => {
   return (
     <SafeAreaView
       style={{
+        // marginTop: 25,
         flex: 1,
         // backgroundColor: Colors.primaryColor,
         padding: 5,
@@ -206,13 +235,17 @@ const CalenderHome = (props, { navigation }) => {
         style={{
           width: "100%",
           //height:?
-          backgroundColor: Colors.primary,
-          borderBottomLeftRadius: 50,
+          // alignItems: "center",
+          // alignContent: "center",
+          justifyContent: "space-between",
+
+          backgroundColor: "white",
+          // borderBottomLeftRadius: 50,
         }}
       >
         <Appbar.Action
           icon="menu"
-          color="white"
+          color={Colors.primary}
           onPress={() => {
             props.drawerAction();
           }}
@@ -235,14 +268,26 @@ const CalenderHome = (props, { navigation }) => {
           onPress={() => navigation.goBack()}
         /> */}
         {/* <Avatar.Text size={24} label="XD" /> */}
-        <Appbar.Content
-          title="ME Fisio"
+        {/* <View style={{ alignContent: "center", alignItems: "center" }}> */}
+        <Image
+          style={styles.tinyLogo}
+          source={require("../assets/mayraLogo.png")}
+        />
+        <Appbar.Action
+          icon="refresh"
+          color={Colors.primary}
+          onPress={() => {
+            props.drawerAction();
+          }}
+        />
+        {/* <Appbar.Content
+          // title="ME Fisio"
           titleStyle={{
             fontWeight: "bold",
             fontSize: 25,
             color: "white",
           }}
-        />
+        /> */}
         {/* <Appbar.Action icon="dots-vertical" onPress={null} color={"white"} /> */}
         {/* title="ME Fisio"
           titleStyle={{
@@ -284,14 +329,15 @@ const CalenderHome = (props, { navigation }) => {
         // hideExtraDays
         // markedDates={{ [selected]: { selected: true } }}
 
-        markedDates={{
-          // "2021-11-16": { selected: true, marked: true },
-          "2022-03-02": { marked: true },
-          "2022-03-03": { marked: true },
-          // "2021-11-20": { disabled: true },
-          // "2021-11-21": { disabled: true },
-          // "2021-11-27": { disabled: true },
-        }}
+        markedDates={
+          marks
+          // // "2021-11-16": { selected: true, marked: true },
+          // "2022-03-02": { marked: true },
+          // "2022-03-03": { marked: true },
+          // // "2021-11-20": { disabled: true },
+          // // "2021-11-21": { disabled: true },
+          // // "2021-11-27": { disabled: true },
+        }
         theme={{
           selectedDayBackgroundColor: Colors.primary,
           todayTextColor: Colors.primary,
@@ -304,7 +350,9 @@ const CalenderHome = (props, { navigation }) => {
           return (
             <View style={styles.itemView}>
               <View>
-                <TouchableOpacity onPress={() => alert(item.name)}>
+                <TouchableOpacity
+                  onPress={() => alert(item.Name, item.Time, item.Type)}
+                >
                   <Text style={styles.itemTime}>{item.Time}</Text>
                   <Text style={styles.itemName}>{item.Name}</Text>
                   <Text style={styles.itemType}>{item.Type}</Text>
@@ -398,6 +446,12 @@ const styles = StyleSheet.create({
   itemType: {
     fontSize: 15,
     color: "grey",
+  },
+  tinyLogo: {
+    width: 100,
+    height: 50,
+    alignSelf: "center",
+    alignContent: "center",
   },
 });
 

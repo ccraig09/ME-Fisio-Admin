@@ -3,6 +3,7 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import Home from "../screens/HomeScreen";
 import Details from "../screens/DetailsScreen";
 import Pdf from "../screens/PdfScreen";
+import Notifications from "../screens/NotificationsScreen";
 import Booking from "../screens/BookingScreen";
 import Slot from "../screens/SlotScreen";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
@@ -53,6 +54,15 @@ const AppStack = () => {
         options={{
           drawerIcon: ({ color }) => (
             <Ionicons name="share-outline" size={22} color={color} />
+          ),
+        }}
+      />
+      <Drawer.Screen
+        name="Notications"
+        component={Notifications}
+        options={{
+          drawerIcon: ({ color }) => (
+            <Ionicons name="notifications-outline" size={22} color={color} />
           ),
         }}
       />

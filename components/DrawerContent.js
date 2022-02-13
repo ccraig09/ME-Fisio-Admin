@@ -17,6 +17,7 @@ import FontAwesome5 from "react-native-vector-icons/FontAwesome5";
 import Colors from "../constants/Colors";
 
 const DrawerContent = (props) => {
+  console.log("drawer");
   return (
     <View style={{ flex: 1 }}>
       <DrawerContentScrollView
