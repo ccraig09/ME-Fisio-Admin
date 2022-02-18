@@ -12,6 +12,8 @@ import Colors from "../constants/Colors";
 
 import Icon from "react-native-vector-icons/Ionicons";
 import ClientListScreen from "../screens/ClientListScreen";
+import ClientDetailsScreen from "../screens/ClientDetailsScreen";
+import EditClientScreen from "../screens/EditClientScreen";
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -85,7 +87,7 @@ const ClientStack = () => (
         headerShown: false,
       })}
     />
-    {/* <Stack.Screen
+    <Stack.Screen
       name="Client"
       component={ClientDetailsScreen}
       options={({ navigation }) => ({
@@ -100,7 +102,7 @@ const ClientStack = () => (
         title: "Editar Cliente",
         headerShown: true,
       })}
-    /> */}
+    />
   </Stack.Navigator>
 );
 const HomeStack = () => {
