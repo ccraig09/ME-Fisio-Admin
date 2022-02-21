@@ -9,6 +9,8 @@ import {
   StatusBar,
   Alert,
   SafeAreaView,
+  Modal,
+  Pressable,
   Dimensions,
   TouchableOpacity,
   Button,
@@ -24,17 +26,21 @@ import InfoText from "../components/InfoText";
 import styled, { useTheme } from "styled-components";
 import NoteBlock from "../components/NoteBlock";
 import { Ionicons } from "@expo/vector-icons";
+import { TextInput } from "react-native-paper";
 
 const ClientDetailsScreen = ({ route, navigation }) => {
-  const { userNotificationReceipt } = useContext(AuthContext);
+  const { userNotificationReceipt, addNote } = useContext(AuthContext);
 
   const { id, data } = route.params;
   const [userNotes, setUserNotes] = useState([]);
 
   const [notify, setNotify] = useState(false);
   const [selectedClient, setSelectedClient] = useState(false);
+  const [noteModal, setNoteModal] = useState(false);
   const [notifyTitle, setNotifyTitle] = useState("");
   const [notifySubtitle, setNotifySubtitle] = useState("");
+  const [text, setText] = useState("");
+  const [title, setTitle] = useState("");
 
   const testList = [
     { title: "Edad", data: "31", key: 1 },
@@ -79,14 +85,15 @@ const ClientDetailsScreen = ({ route, navigation }) => {
             .collection("Members")
             .doc(id)
             .collection("Member Notes")
-            .orderBy("title", "asc")
+            .orderBy("timestamp", "asc")
             .get()
             .then((querySnapshot) => {
               querySnapshot.forEach((doc) => {
-                const { title, ownerId, timeStamp } = doc.data();
+                const { title, ownerId, note, timeStamp } = doc.data();
                 list.push({
                   key: doc.id,
                   title: title,
+                  note: note,
                   ownerId: ownerId,
                   timeStamp: timeStamp,
                 });
@@ -102,8 +109,98 @@ const ClientDetailsScreen = ({ route, navigation }) => {
     }, [])
   );
 
+  const saveNoteHandler = () => {
+    addNote(title, text, id);
+    setNoteModal(false);
+    setText("");
+    setTitle("");
+    fetchMemberNotes();
+  };
+
+  const fetchMemberNotes = async () => {
+    try {
+      const list = [];
+      await firebase
+        .firestore()
+        .collection("Members")
+        .doc(id)
+        .collection("Member Notes")
+        .orderBy("timestamp", "asc")
+        .get()
+        .then((querySnapshot) => {
+          querySnapshot.forEach((doc) => {
+            const { title, ownerId, note, timeStamp } = doc.data();
+            list.push({
+              key: doc.id,
+              title: title,
+              note: note,
+              ownerId: ownerId,
+              timeStamp: timeStamp,
+            });
+          });
+        });
+      setUserNotes(list);
+    } catch (e) {
+      console.log(e);
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container}>
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={noteModal}
+        onRequestClose={() => {
+          setText("");
+          setTitle("");
+          setNoteModal(false);
+        }}
+      >
+        <View style={styles.centeredView}>
+          <View style={styles.modalView}>
+            <View style={{ height: 100, width: "100%" }}>
+              <TextInput
+                underlineColor={Colors.primary}
+                activeUnderlineColor={Colors.primary}
+                label="Titulo"
+                value={title}
+                onChangeText={(text) => setTitle(text)}
+              />
+            </View>
+            <View style={{ height: 100, width: "100%" }}>
+              <TextInput
+                multiline
+                underlineColor={Colors.primary}
+                activeUnderlineColor={Colors.primary}
+                label="Nota"
+                value={text}
+                onChangeText={(text) => setText(text)}
+              />
+            </View>
+            <View style={{ marginTop: 50 }}>
+              <Pressable
+                style={[styles.button, styles.buttonClose]}
+                onPress={() => {
+                  setText("");
+                  setTitle("");
+                  setNoteModal(false);
+                }}
+              >
+                <Text style={styles.textStyle}>Cancelar</Text>
+              </Pressable>
+              <Pressable
+                style={[styles.button, styles.buttonOpen]}
+                onPress={() => {
+                  saveNoteHandler();
+                }}
+              >
+                <Text style={styles.textStyle}>Guardar</Text>
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
       <View style={{ marginTop: 20 }}>
         <TouchableOpacity
           onPress={() => {
@@ -210,7 +307,7 @@ const ClientDetailsScreen = ({ route, navigation }) => {
             Alert.alert("Nueva Nota", "Quisieras agregar una nueva nota?", [
               {
                 text: "Si",
-                // onPress: () => setEvalDateModal(true),
+                onPress: () => setNoteModal(true),
               },
               {
                 text: "Cancelar",
@@ -242,6 +339,11 @@ const ClientDetailsScreen = ({ route, navigation }) => {
                 justifyContent: "center",
                 alignItems: "center",
                 borderWidth: 2,
+                shadowColor: "black",
+                shadowOpacity: 0.26,
+                shadowOffset: { width: 0, height: 2 },
+                shadowRadius: 5,
+                elevation: 5,
               }}
             >
               <Ionicons
@@ -309,6 +411,13 @@ const ClientDetailsScreen = ({ route, navigation }) => {
               style={{
                 backgroundColor: Colors.primary,
                 // flex: 1,
+
+                shadowColor: "black",
+                shadowOpacity: 0.56,
+                shadowOffset: { width: 0, height: 2 },
+                shadowRadius: 5,
+                elevation: 5,
+
                 margin: 10,
                 borderRadius: 10,
                 borderWidth: 2,
@@ -466,6 +575,57 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginTop: 10,
     marginHorizontal: 10,
+  },
+  shadow: {
+    shadowColor: "black",
+    shadowOpacity: 0.26,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 5,
+    elevation: 5,
+  },
+  centeredView: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 22,
+  },
+  modalView: {
+    width: "80%",
+    height: "50%",
+    margin: 20,
+    backgroundColor: "white",
+    borderRadius: 20,
+    padding: 25,
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  button: {
+    borderRadius: 20,
+    padding: 10,
+    elevation: 2,
+  },
+  buttonOpen: {
+    marginTop: 10,
+    backgroundColor: Colors.primary,
+  },
+  buttonClose: {
+    backgroundColor: "red",
+  },
+  textStyle: {
+    color: "white",
+    fontWeight: "bold",
+    textAlign: "center",
+  },
+  modalText: {
+    marginBottom: 15,
+    textAlign: "center",
   },
 });
 

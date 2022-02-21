@@ -3,6 +3,8 @@ import {
   TouchableOpacity,
   TouchableNativeFeedback,
   Platform,
+  View,
+  StyleSheet,
 } from "react-native";
 import styled from "styled-components";
 
@@ -14,14 +16,26 @@ export const NoteBlock = (props) => {
   }
   return (
     <TouchableCmp onPress={props.onSelect} onLongPress={props.longPress}>
-      <Item>
-        <Text>{props.title}</Text>
-      </Item>
+      <View style={styles.shadow}>
+        <Item>
+          <Text>{props.title}</Text>
+        </Item>
+      </View>
     </TouchableCmp>
   );
 };
 
 export default NoteBlock;
+
+const styles = StyleSheet.create({
+  shadow: {
+    shadowColor: "black",
+    shadowOpacity: 0.56,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 5,
+    elevation: 5,
+  },
+});
 
 const Item = styled.View`
   background: #5b91a6;

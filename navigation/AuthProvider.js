@@ -6,7 +6,7 @@ export const AuthContext = createContext();
 
 export const AuthProvider = ({ children, navigation }) => {
   const [user, setUser] = useState(null);
-  const db = firebase.firestore().collection("Users");
+  const db = firebase.firestore().collection("Members");
 
   const firebaseErrors = {
     "auth/app-deleted": "No se encontró la base de datos",
@@ -230,6 +230,24 @@ export const AuthProvider = ({ children, navigation }) => {
             const errorMes = firebaseErrors[e.code];
             alert(errorMes);
             console.log(e);
+          }
+        },
+        addNote: async (title, text, id) => {
+          console.log("note being added", title, text, id);
+          try {
+            await db.doc(id).collection("Member Notes").doc().set(
+              {
+                title: title,
+                note: text,
+                ownerId: id,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+              },
+              { merge: true }
+            );
+          } catch (e) {
+            const errorMes = firebaseErrors[e.code];
+            alert(errorMes);
+            console.log(errorMes);
           }
         },
       }}
