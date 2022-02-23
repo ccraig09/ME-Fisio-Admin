@@ -250,6 +250,14 @@ export const AuthProvider = ({ children, navigation }) => {
             console.log(errorMes);
           }
         },
+        deleteNote: async (docId, id) => {
+          console.log("deleteing eval", docId, id);
+          try {
+            await db.doc(id).collection("Member Notes").doc(docId).delete();
+          } catch (e) {
+            console.log(e);
+          }
+        },
       }}
     >
       {children}

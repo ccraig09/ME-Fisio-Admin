@@ -26,10 +26,11 @@ import InfoText from "../components/InfoText";
 import styled, { useTheme } from "styled-components";
 import NoteBlock from "../components/NoteBlock";
 import { Ionicons } from "@expo/vector-icons";
-import { TextInput } from "react-native-paper";
+import { TextInput, HelperText } from "react-native-paper";
 
 const ClientDetailsScreen = ({ route, navigation }) => {
-  const { userNotificationReceipt, addNote } = useContext(AuthContext);
+  const { userNotificationReceipt, addNote, deleteNote } =
+    useContext(AuthContext);
 
   const { id, data } = route.params;
   const [userNotes, setUserNotes] = useState([]);
@@ -145,6 +146,24 @@ const ClientDetailsScreen = ({ route, navigation }) => {
     }
   };
 
+  const deleteHandler = async (docId) => {
+    Alert.alert("Borrar Nota?", "Quiere borrar esta nota?", [
+      { text: "No", style: "default" },
+      {
+        text: "Si",
+        style: "destructive",
+        onPress: async () => {
+          await deleteNote(docId, id);
+          fetchMemberNotes();
+        },
+      },
+    ]);
+  };
+
+  const hasErrors = () => {
+    return title.length < 2;
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <Modal
@@ -165,8 +184,14 @@ const ClientDetailsScreen = ({ route, navigation }) => {
                 activeUnderlineColor={Colors.primary}
                 label="Titulo"
                 value={title}
+                maxLength={20}
                 onChangeText={(text) => setTitle(text)}
+                right={<TextInput.Affix text={`${title.length}/20`} />}
+                error={title.length < 2}
               />
+              <HelperText type="error" visible={hasErrors()}>
+                El titulo es muy corto!
+              </HelperText>
             </View>
             <View style={{ height: 100, width: "100%" }}>
               <TextInput
@@ -176,6 +201,7 @@ const ClientDetailsScreen = ({ route, navigation }) => {
                 label="Nota"
                 value={text}
                 onChangeText={(text) => setText(text)}
+                error={text.length < 2}
               />
             </View>
             <View style={{ marginTop: 50 }}>
@@ -190,6 +216,7 @@ const ClientDetailsScreen = ({ route, navigation }) => {
                 <Text style={styles.textStyle}>Cancelar</Text>
               </Pressable>
               <Pressable
+                disabled={title.length < 2 || text.length < 2}
                 style={[styles.button, styles.buttonOpen]}
                 onPress={() => {
                   saveNoteHandler();
