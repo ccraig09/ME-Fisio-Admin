@@ -250,6 +250,24 @@ export const AuthProvider = ({ children, navigation }) => {
             console.log(errorMes);
           }
         },
+        editNote: async (title, text, id, noteId) => {
+          console.log("note being edited", title, text, id);
+          try {
+            await db.doc(id).collection("Member Notes").doc(noteId).set(
+              {
+                title: title,
+                note: text,
+                ownerId: id,
+                // timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+              },
+              { merge: true }
+            );
+          } catch (e) {
+            const errorMes = firebaseErrors[e.code];
+            alert(errorMes);
+            console.log(errorMes);
+          }
+        },
         deleteNote: async (docId, id) => {
           console.log("deleteing eval", docId, id);
           try {

@@ -14,6 +14,7 @@ import Icon from "react-native-vector-icons/Ionicons";
 import ClientListScreen from "../screens/ClientListScreen";
 import ClientDetailsScreen from "../screens/ClientDetailsScreen";
 import EditClientScreen from "../screens/EditClientScreen";
+import SectionScreen from "../screens/SectionScreen";
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -101,6 +102,14 @@ const ClientStack = () => (
       options={({ navigation }) => ({
         title: "Editar Cliente",
         headerShown: true,
+      })}
+    />
+    <Stack.Screen
+      name="Section"
+      component={SectionScreen}
+      options={({ navigation }) => ({
+        title: "Secion",
+        headerShown: false,
       })}
     />
   </Stack.Navigator>

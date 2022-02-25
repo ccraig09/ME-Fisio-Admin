@@ -26,10 +26,10 @@ import InfoText from "../components/InfoText";
 import styled, { useTheme } from "styled-components";
 import NoteBlock from "../components/NoteBlock";
 import { Ionicons } from "@expo/vector-icons";
-import { TextInput, HelperText } from "react-native-paper";
+import { TextInput, HelperText, Headline, Paragraph } from "react-native-paper";
 
 const ClientDetailsScreen = ({ route, navigation }) => {
-  const { userNotificationReceipt, addNote, deleteNote } =
+  const { userNotificationReceipt, addNote, deleteNote, editNote } =
     useContext(AuthContext);
 
   const { id, data } = route.params;
@@ -38,14 +38,21 @@ const ClientDetailsScreen = ({ route, navigation }) => {
   const [notify, setNotify] = useState(false);
   const [selectedClient, setSelectedClient] = useState(false);
   const [noteModal, setNoteModal] = useState(false);
+  const [noteDetailModal, setNoteDetailModal] = useState(false);
   const [notifyTitle, setNotifyTitle] = useState("");
   const [notifySubtitle, setNotifySubtitle] = useState("");
   const [text, setText] = useState("");
   const [title, setTitle] = useState("");
+  const [noteDetailTitle, setNoteDetailTitle] = useState("");
+  const [noteDetailNote, setNoteDetailNote] = useState("");
+  const [noteDetailId, setNoteDetailId] = useState("");
+  const [titleIsValid, setTitleIsValid] = useState(true);
+  const [textIsValid, setTextIsValid] = useState(true);
+  const [editMode, setEditMode] = useState(false);
 
   const testList = [
-    { title: "Edad", data: "31", key: 1 },
-    { title: "Altura", data: "1.93", key: 2 },
+    { title: "Informacion de Cliente", screen: "Info", key: 1 },
+    { title: "Evaluacion Muscular", screen: "Muscular", key: 2 },
     ,
     { title: "Fecha Nacimiento", data: "21 de feb 1991", key: 3 },
     ,
@@ -67,7 +74,7 @@ const ClientDetailsScreen = ({ route, navigation }) => {
             .get()
             .then((doc) => {
               if (doc.exists) {
-                console.log("Document data:", doc.data());
+                // console.log("Document data:", doc.data());
                 setSelectedClient(doc.data());
               } else {
                 // doc.data() will be undefined in this case
@@ -111,11 +118,18 @@ const ClientDetailsScreen = ({ route, navigation }) => {
   );
 
   const saveNoteHandler = () => {
-    addNote(title, text, id);
+    if (!editMode) {
+      addNote(title, text, id);
+    } else {
+      editNote(title, text, id, noteDetailId);
+    }
     setNoteModal(false);
     setText("");
     setTitle("");
-    fetchMemberNotes();
+    setEditMode(false);
+    setTimeout(() => {
+      fetchMemberNotes();
+    }, 1000);
   };
 
   const fetchMemberNotes = async () => {
@@ -160,8 +174,49 @@ const ClientDetailsScreen = ({ route, navigation }) => {
     ]);
   };
 
-  const hasErrors = () => {
-    return title.length < 2;
+  // const hasErrors = () => {
+  //   return title.length < 2;
+  // };
+  const hasErrors = (val) => {
+    if (val.length < 2) {
+      setTitle(val);
+      setTitleIsValid(false);
+    } else {
+      setTitle(val);
+      setTitleIsValid(true);
+    }
+  };
+  const hasErrorsNote = (val) => {
+    if (val.length < 10) {
+      setText(val);
+      setTextIsValid(false);
+    } else {
+      setText(val);
+      setTextIsValid(true);
+    }
+  };
+
+  const NoteMap = () => {
+    userNotes.map((note) => {
+      return (
+        <NoteBlock
+          title={note.title}
+          onSelect={() => {
+            setNoteDetailModal(true);
+            setNoteDetailTitle(note.title);
+            setNoteDetailNote(note.note);
+            setNoteDetailId(note.key);
+            //   itemData.item.key,
+            //   itemData.item.title,
+            //   itemData.item.timeStamp
+            // );
+          }}
+          longPress={() => {
+            deleteHandler(itemData.item.key);
+          }}
+        />
+      );
+    });
   };
 
   return (
@@ -174,6 +229,8 @@ const ClientDetailsScreen = ({ route, navigation }) => {
           setText("");
           setTitle("");
           setNoteModal(false);
+          setTitleIsValid(true);
+          setTextIsValid(true);
         }}
       >
         <View style={styles.centeredView}>
@@ -185,11 +242,11 @@ const ClientDetailsScreen = ({ route, navigation }) => {
                 label="Titulo"
                 value={title}
                 maxLength={20}
-                onChangeText={(text) => setTitle(text)}
+                onChangeText={(text) => hasErrors(text)}
                 right={<TextInput.Affix text={`${title.length}/20`} />}
-                error={title.length < 2}
+                error={!titleIsValid}
               />
-              <HelperText type="error" visible={hasErrors()}>
+              <HelperText type="error" visible={!titleIsValid}>
                 El titulo es muy corto!
               </HelperText>
             </View>
@@ -200,9 +257,12 @@ const ClientDetailsScreen = ({ route, navigation }) => {
                 activeUnderlineColor={Colors.primary}
                 label="Nota"
                 value={text}
-                onChangeText={(text) => setText(text)}
-                error={text.length < 2}
+                onChangeText={(text) => hasErrorsNote(text)}
+                error={!textIsValid}
               />
+              <HelperText type="error" visible={!textIsValid}>
+                Las notas deben ser minimo 10 caracteres!
+              </HelperText>
             </View>
             <View style={{ marginTop: 50 }}>
               <Pressable
@@ -211,18 +271,65 @@ const ClientDetailsScreen = ({ route, navigation }) => {
                   setText("");
                   setTitle("");
                   setNoteModal(false);
+                  setTitleIsValid(true);
+                  setTextIsValid(true);
                 }}
               >
                 <Text style={styles.textStyle}>Cancelar</Text>
               </Pressable>
               <Pressable
-                disabled={title.length < 2 || text.length < 2}
-                style={[styles.button, styles.buttonOpen]}
+                disabled={!titleIsValid || text.length < 10}
+                style={[
+                  styles.button,
+                  title.length >= 2 && text.length >= 10
+                    ? styles.buttonOpen
+                    : styles.buttonDisabled,
+                ]}
                 onPress={() => {
                   saveNoteHandler();
                 }}
               >
                 <Text style={styles.textStyle}>Guardar</Text>
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={noteDetailModal}
+        onRequestClose={() => {
+          setNoteDetailModal(false);
+        }}
+      >
+        <View style={styles.centeredView}>
+          <View style={styles.modalView}>
+            <Headline>{noteDetailTitle}</Headline>
+            <Paragraph>{noteDetailNote}</Paragraph>
+            <View style={{ marginTop: 100 }}>
+              <Pressable
+                style={[styles.button, styles.buttonClose]}
+                onPress={() => {
+                  setNoteDetailModal(false);
+                }}
+              >
+                <Text style={styles.textStyle}>Cerrar</Text>
+              </Pressable>
+              <Pressable
+                //   disabled={!titleIsValid || text.length < 10}
+                style={[styles.button, styles.buttonOpen]}
+                onPress={() => {
+                  setNoteDetailModal(false);
+                  setEditMode(true);
+                  setTitle(noteDetailTitle);
+                  setText(noteDetailNote);
+                  setTimeout(() => {
+                    setNoteModal(true);
+                  }, 1000);
+                }}
+              >
+                <Text style={styles.textStyle}>Editar</Text>
               </Pressable>
             </View>
           </View>
@@ -402,8 +509,29 @@ const ClientDetailsScreen = ({ route, navigation }) => {
             </Text>
           </View>
         ) : (
-          <View style={{ height: 100 }}>
-            <FlatList
+          <ScrollView horizontal style={{ height: 100 }}>
+            {userNotes.map((note) => {
+              return (
+                <NoteBlock
+                  key={note.key}
+                  title={note.title}
+                  onSelect={() => {
+                    setNoteDetailModal(true);
+                    setNoteDetailTitle(note.title);
+                    setNoteDetailNote(note.note);
+                    setNoteDetailId(note.key);
+                    //   itemData.item.key,
+                    //   itemData.item.title,
+                    //   itemData.item.timeStamp
+                    // );
+                  }}
+                  longPress={() => {
+                    deleteHandler(itemData.item.key);
+                  }}
+                />
+              );
+            })}
+            {/* <FlatList
               horizontal={true}
               showsHorizontalScrollIndicator={false}
               data={userNotes}
@@ -412,23 +540,69 @@ const ClientDetailsScreen = ({ route, navigation }) => {
                 <NoteBlock
                   title={itemData.item.title}
                   onSelect={() => {
-                    selectEvalHandler(
-                      itemData.item.key,
-                      itemData.item.title,
-                      itemData.item.timeStamp
-                    );
+                    setNoteDetailModal(true);
+                    setNoteDetailTitle(itemData.item.title);
+                    setNoteDetailNote(itemData.item.note);
+                    setNoteDetailId(itemData.item.key);
+                    //   itemData.item.key,
+                    //   itemData.item.title,
+                    //   itemData.item.timeStamp
+                    // );
                   }}
                   longPress={() => {
                     deleteHandler(itemData.item.key);
                   }}
                 />
               )}
-            />
-          </View>
+            /> */}
+          </ScrollView>
         )}
-        <Subtitle>{"Informacion de Cliente".toUpperCase()}</Subtitle>
+        <Subtitle>{"Historia Clínica Fisioterapia".toUpperCase()}</Subtitle>
 
-        <FlatList
+        <ScrollView>
+          {testList.map((item) => {
+            return (
+              <TouchableOpacity
+                key={item.key}
+                onPress={() => {
+                  navigation.navigate("Section", {
+                    section: item.screen,
+                  });
+                }}
+                style={{
+                  backgroundColor: Colors.primary,
+                  flex: 1,
+
+                  shadowColor: "black",
+                  shadowOpacity: 0.56,
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowRadius: 5,
+                  elevation: 5,
+                  alignSelf: "center",
+                  margin: 10,
+                  borderRadius: 10,
+                  borderWidth: 2,
+                  borderColor: Colors.primary,
+                  padding: 10,
+                  width: "85%",
+                  height: 70,
+                  // alignItems: "center",
+                  justifyContent: "center",
+                  // flexWrap: "wrap",
+                }}
+              >
+                <Text style={styles.dataButtonTitle}>{item.title}</Text>
+                {/* <Text
+                  style={{ textAlign: "center", marginTop: 5, fontSize: 18 }}
+                >
+                  {item.data}
+                </Text> */}
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
+
+        {/* <FlatList
           data={testList}
           horizontal={false}
           keyExtractor={(item) => item.key}
@@ -460,7 +634,7 @@ const ClientDetailsScreen = ({ route, navigation }) => {
               </Text>
             </TouchableOpacity>
           )}
-        />
+        /> */}
       </ScrollView>
     </SafeAreaView>
   );
@@ -586,6 +760,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: "white",
     textAlign: "center",
+    alignSelf: "center",
   },
   commandButtonDsiabled: {
     padding: 15,
@@ -641,6 +816,10 @@ const styles = StyleSheet.create({
   buttonOpen: {
     marginTop: 10,
     backgroundColor: Colors.primary,
+  },
+  buttonDisabled: {
+    marginTop: 10,
+    backgroundColor: "grey",
   },
   buttonClose: {
     backgroundColor: "red",
