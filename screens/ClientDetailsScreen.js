@@ -567,6 +567,7 @@ const ClientDetailsScreen = ({ route, navigation }) => {
                 onPress={() => {
                   navigation.navigate("Section", {
                     section: item.screen,
+                    id: id,
                   });
                 }}
                 style={{
@@ -601,40 +602,6 @@ const ClientDetailsScreen = ({ route, navigation }) => {
             );
           })}
         </ScrollView>
-
-        {/* <FlatList
-          data={testList}
-          horizontal={false}
-          keyExtractor={(item) => item.key}
-          numColumns={3}
-          renderItem={(itemData) => (
-            <TouchableOpacity
-              style={{
-                backgroundColor: Colors.primary,
-                // flex: 1,
-
-                shadowColor: "black",
-                shadowOpacity: 0.56,
-                shadowOffset: { width: 0, height: 2 },
-                shadowRadius: 5,
-                elevation: 5,
-
-                margin: 10,
-                borderRadius: 10,
-                borderWidth: 2,
-                borderColor: Colors.primary,
-                padding: 10,
-                width: "45%",
-                // flexWrap: "wrap",
-              }}
-            >
-              <Text style={styles.dataButtonTitle}>{itemData.item.title}</Text>
-              <Text style={{ textAlign: "center", marginTop: 5, fontSize: 18 }}>
-                {itemData.item.data}
-              </Text>
-            </TouchableOpacity>
-          )}
-        /> */}
       </ScrollView>
     </SafeAreaView>
   );

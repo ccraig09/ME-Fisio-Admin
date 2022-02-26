@@ -9,7 +9,7 @@ import {
 import React from "react";
 import Colors from "../constants/Colors";
 
-const InfoComponent = () => {
+const InfoComponent = (props) => {
   const testList = [
     { title: "Informacion de Cliente", screen: "Info", key: 1 },
     { title: "Evaluacion Muscular", screen: "Muscular", key: 2 },
@@ -21,13 +21,15 @@ const InfoComponent = () => {
     { title: "Peso", data: "78 kilos", key: 6 },
     ,
   ];
+
+  console.log("this the props?", props.data);
   return (
     <SafeAreaView style={styles.container}>
       <View style={{ flex: 1, width: "100%" }}>
         <FlatList
-          data={testList}
+          data={props.data.Info}
           horizontal={false}
-          keyExtractor={(item) => item.key}
+          keyExtractor={(item, index) => index}
           numColumns={3}
           renderItem={(itemData) => (
             <TouchableOpacity style={styles.details}>
