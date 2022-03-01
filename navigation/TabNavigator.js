@@ -92,7 +92,7 @@ const ClientStack = () => (
       name="Client"
       component={ClientDetailsScreen}
       options={({ navigation }) => ({
-        title: "Cliente Detalles",
+        title: "Detalles",
         headerShown: true,
       })}
     />
@@ -108,8 +108,16 @@ const ClientStack = () => (
       name="Section"
       component={SectionScreen}
       options={({ navigation }) => ({
-        title: "Secion",
-        headerShown: false,
+        title: "Datos",
+        headerShown: true,
+      })}
+    />
+    <Stack.Screen
+      name="PDF"
+      component={Pdf}
+      options={({ navigation }) => ({
+        title: "Exportar",
+        headerShown: true,
       })}
     />
   </Stack.Navigator>

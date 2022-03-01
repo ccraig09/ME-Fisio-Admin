@@ -246,8 +246,8 @@ export const AuthProvider = ({ children, navigation }) => {
             );
           } catch (e) {
             const errorMes = firebaseErrors[e.code];
-            alert(errorMes);
-            console.log(errorMes);
+            alert(e);
+            console.log(e);
           }
         },
         editNote: async (title, text, id, noteId) => {
@@ -266,6 +266,23 @@ export const AuthProvider = ({ children, navigation }) => {
             const errorMes = firebaseErrors[e.code];
             alert(errorMes);
             console.log(errorMes);
+          }
+        },
+        updateNote: async (title, data, key, section, id) => {
+          console.log("note being updated", title, data, id);
+          try {
+            await db.doc(id).collection(section).doc(key).set(
+              {
+                title: title,
+                data: data,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+              },
+              { merge: true }
+            );
+          } catch (e) {
+            const errorMes = firebaseErrors[e.code];
+            alert(e);
+            console.log(e);
           }
         },
         deleteNote: async (docId, id) => {

@@ -1,4 +1,4 @@
-import React, { useState, useContext, useEffect } from "react";
+import React, { useState, useContext, useEffect, createRef } from "react";
 import {
   View,
   Text,
@@ -27,6 +27,11 @@ import styled, { useTheme } from "styled-components";
 import NoteBlock from "../components/NoteBlock";
 import { Ionicons } from "@expo/vector-icons";
 import { TextInput, HelperText, Headline, Paragraph } from "react-native-paper";
+import OrientationLoadingOverlay from "react-native-orientation-loading-overlay";
+import ActionSheet from "react-native-actions-sheet";
+import * as ImagePicker from "expo-image-picker";
+
+const actionSheetRef = createRef();
 
 const ClientDetailsScreen = ({ route, navigation }) => {
   const { userNotificationReceipt, addNote, deleteNote, editNote } =
@@ -34,6 +39,9 @@ const ClientDetailsScreen = ({ route, navigation }) => {
 
   const { id, data } = route.params;
   const [userNotes, setUserNotes] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [image, setImage] = useState(null);
+  const [userInfo, setUserInfo] = useState([]);
 
   const [notify, setNotify] = useState(false);
   const [selectedClient, setSelectedClient] = useState(false);
@@ -45,6 +53,7 @@ const ClientDetailsScreen = ({ route, navigation }) => {
   const [title, setTitle] = useState("");
   const [noteDetailTitle, setNoteDetailTitle] = useState("");
   const [noteDetailNote, setNoteDetailNote] = useState("");
+  const [selectedLoader, setSelectedLoader] = useState();
   const [noteDetailId, setNoteDetailId] = useState("");
   const [titleIsValid, setTitleIsValid] = useState(true);
   const [textIsValid, setTextIsValid] = useState(true);
@@ -54,14 +63,31 @@ const ClientDetailsScreen = ({ route, navigation }) => {
     { title: "Informacion de Cliente", screen: "Info", key: 1 },
     { title: "Evaluacion Muscular", screen: "Muscular", key: 2 },
     ,
-    { title: "Fecha Nacimiento", data: "21 de feb 1991", key: 3 },
+    { title: "Prueba de Arcos Superiores", data: "Superiores", key: 3 },
     ,
-    { title: "Lesion", data: "Rodilla derecha", key: 4 },
-    { title: "Telefono", data: "+5911234567", key: 5 },
-    { title: "Peso", data: "78 kilos", key: 6 },
+    { title: "Prueba de Arcos Superiores", data: "Inferiores", key: 4 },
+    { title: "Análisis de la Marcha", data: "Marcha", key: 5 },
+    { title: "Evaluación en la Postura", data: "Postura", key: 6 },
     ,
   ];
 
+  useEffect(() => {
+    (async () => {
+      // if (Platform.OS !== "web") {
+      const { status } =
+        await ImagePicker.requestMediaLibraryPermissionsAsync();
+      await ImagePicker.requestCameraPermissionsAsync();
+      if (status !== "granted") {
+        Alert.alert(
+          "¡Permisos insuficientes!",
+          "Lo siento, necesitamos permiso para acceder a la cámara.",
+          [{ text: "Listo" }]
+        );
+      }
+      // }
+    })();
+    console.log("this the selected", selectedClient.clientData);
+  }, []);
   useFocusEffect(
     React.useCallback(() => {
       // console.log("loading home and user", user);
@@ -116,6 +142,108 @@ const ClientDetailsScreen = ({ route, navigation }) => {
       fetchClientDetails();
     }, [])
   );
+  const takePhotoFromCamera = async () => {
+    let result = await ImagePicker.launchCameraAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 0.7,
+    });
+    console.log(result);
+
+    if (!result.cancelled) {
+      setImage(result.uri);
+      actionSheetRef.current?.hide();
+    }
+  };
+
+  const choosePhotoFromLibrary = async () => {
+    console.log("opening gallery");
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 0.7,
+    });
+    console.log(result);
+
+    if (!result.cancelled) {
+      setImage(result.uri);
+      actionSheetRef.current?.hide();
+    }
+  };
+  const submitChanges = async () => {
+    let imageUrl = await uploadImage();
+    console.log(imageUrl);
+    if (imageUrl == null && userInfo.userImg) {
+      imageUrl = userInfo.userImg;
+    }
+    if (imageUrl == null && userInfo.userImg == null) {
+      imageUrl = null;
+    }
+
+    await editClient(userInfo, imageUrl);
+
+    if (image == null) {
+      Alert.alert(
+        "Cliente Actualizado!",
+        "El Cliente se ha actualizado exitosamente!"
+      );
+    }
+
+    navigation.goBack();
+  };
+
+  const uploadImage = async () => {
+    if (image == null) {
+      console.log("image is null");
+      return null;
+    }
+    // const uploadUri = image;
+    const response = await fetch(image);
+    const blob = await response.blob();
+    // let fileName = uploadUri.substring(uploadUri.lastIndexOf("/") + 1);
+
+    setUploading(true);
+    setTransferred(0);
+    const storageRef = firebase
+      .storage()
+      .ref()
+      .child("UserProfileImages/" + `${user.uid}/` + "ProfileImage");
+
+    const task = storageRef.put(blob);
+
+    // Set transferred state
+    task.on("state_changed", (taskSnapshot) => {
+      console.log(
+        `${taskSnapshot.bytesTransferred} transferred out of ${taskSnapshot.totalBytes}`
+      );
+      setTransferred(
+        (
+          (taskSnapshot.bytesTransferred / taskSnapshot.totalBytes) *
+          100
+        ).toFixed(0)
+      );
+    });
+
+    try {
+      await task;
+
+      const url = await storageRef.getDownloadURL();
+
+      setUploading(false);
+      Alert.alert(
+        "Cliente Actualizado!",
+        "El Cliente se ha actualizado exitosamente!"
+      );
+
+      navigation.goBack();
+      return url;
+    } catch (e) {
+      console.log(e);
+      return null;
+    }
+  };
 
   const saveNoteHandler = () => {
     if (!editMode) {
@@ -160,6 +288,14 @@ const ClientDetailsScreen = ({ route, navigation }) => {
     }
   };
 
+  const selectedHandler = async (screen) => {
+    navigation.navigate("Section", {
+      section: screen,
+      // data: list,
+      id: id,
+    });
+  };
+
   const deleteHandler = async (docId) => {
     Alert.alert("Borrar Nota?", "Quiere borrar esta nota?", [
       { text: "No", style: "default" },
@@ -187,7 +323,7 @@ const ClientDetailsScreen = ({ route, navigation }) => {
     }
   };
   const hasErrorsNote = (val) => {
-    if (val.length < 10) {
+    if (val.length < 5) {
       setText(val);
       setTextIsValid(false);
     } else {
@@ -221,6 +357,40 @@ const ClientDetailsScreen = ({ route, navigation }) => {
 
   return (
     <SafeAreaView style={styles.container}>
+      <ActionSheet ref={actionSheetRef} bounceOnOpen={true}>
+        <View style={{ alignItems: "center" }}>
+          <Text style={styles.panelTitle}>Subir Foto</Text>
+          <Text style={styles.panelSubtitle}>Eligir Foto de Perfil</Text>
+        </View>
+
+        <TouchableOpacity
+          style={styles.panelButton}
+          onPress={takePhotoFromCamera}
+        >
+          <Text style={styles.panelButtonTitle}>Abrir Camara</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.panelButton}
+          onPress={choosePhotoFromLibrary}
+        >
+          <Text style={styles.panelButtonTitle}>Abrir Galeria</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.panelButton}
+          onPress={() => {
+            actionSheetRef.current?.hide();
+          }}
+        >
+          <Text style={styles.panelButtonTitle}>Cancelar</Text>
+        </TouchableOpacity>
+      </ActionSheet>
+      <OrientationLoadingOverlay
+        visible={isLoading}
+        color="white"
+        indicatorSize="large"
+        messageFontSize={24}
+        message="Cargando..."
+      />
       <Modal
         animationType="slide"
         transparent={true}
@@ -261,11 +431,11 @@ const ClientDetailsScreen = ({ route, navigation }) => {
                 error={!textIsValid}
               />
               <HelperText type="error" visible={!textIsValid}>
-                Las notas deben ser minimo 10 caracteres!
+                Las notas deben ser minimo 5 caracteres!
               </HelperText>
             </View>
             <View style={{ marginTop: 50 }}>
-              <Pressable
+              <TouchableOpacity
                 style={[styles.button, styles.buttonClose]}
                 onPress={() => {
                   setText("");
@@ -276,12 +446,12 @@ const ClientDetailsScreen = ({ route, navigation }) => {
                 }}
               >
                 <Text style={styles.textStyle}>Cancelar</Text>
-              </Pressable>
-              <Pressable
-                disabled={!titleIsValid || text.length < 10}
+              </TouchableOpacity>
+              <TouchableOpacity
+                disabled={!titleIsValid || text.length < 5}
                 style={[
                   styles.button,
-                  title.length >= 2 && text.length >= 10
+                  title.length >= 2 && text.length >= 5
                     ? styles.buttonOpen
                     : styles.buttonDisabled,
                 ]}
@@ -290,7 +460,7 @@ const ClientDetailsScreen = ({ route, navigation }) => {
                 }}
               >
                 <Text style={styles.textStyle}>Guardar</Text>
-              </Pressable>
+              </TouchableOpacity>
             </View>
           </View>
         </View>
@@ -336,49 +506,47 @@ const ClientDetailsScreen = ({ route, navigation }) => {
         </View>
       </Modal>
       <View style={{ marginTop: 20 }}>
-        <TouchableOpacity
-          onPress={() => {
-            navigation.navigate("Edit");
-          }}
-        >
+        <View>
           <Avatar
             rounded
             // avatarStyle={styles.userImg}
             size={150}
             icon={{ name: "user", type: "font-awesome" }}
             source={{ uri: selectedClient.userImg }}
-            onPress={() => {
-              navigation.navigate("EditClient", {
-                clientData: selectedClient,
-              });
-            }}
           >
             <Avatar.Accessory
               name="pencil-outline"
               type="material-community"
               size={40}
               onPress={() => {
-                navigation.navigate("EditClient", {
-                  clientData: selectedClient,
-                });
+                actionSheetRef.current?.setModalVisible();
               }}
               // color="black"
             />
           </Avatar>
-        </TouchableOpacity>
+        </View>
       </View>
       <Text style={styles.userName}>
         {selectedClient.FirstName} {selectedClient.LastName}
       </Text>
       <Text style={styles.userInfoTitle}>{selectedClient.Cell}</Text>
       <Text style={styles.userInfoTitle}>{selectedClient.email}</Text>
-      <ScrollView>
+      <ScrollView showsVerticalScrollIndicator={false}>
         <View style={styles.userBtnWrapper}>
           <Button
             color={Colors.primary}
             title={"Enviar notificacion"}
             onPress={() => {
               setNotify(true);
+            }}
+          />
+          <Button
+            color={Colors.primary}
+            title={"Exportar PDF"}
+            onPress={() => {
+              navigation.navigate("PDF", {
+                id: id,
+              });
             }}
           />
         </View>
@@ -509,7 +677,11 @@ const ClientDetailsScreen = ({ route, navigation }) => {
             </Text>
           </View>
         ) : (
-          <ScrollView horizontal style={{ height: 100 }}>
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            horizontal
+            style={{ height: 100 }}
+          >
             {userNotes.map((note) => {
               return (
                 <NoteBlock
@@ -559,16 +731,18 @@ const ClientDetailsScreen = ({ route, navigation }) => {
         )}
         <Subtitle>{"Historia Clínica Fisioterapia".toUpperCase()}</Subtitle>
 
-        <ScrollView>
+        <ScrollView showsVerticalScrollIndicator={false}>
           {testList.map((item) => {
             return (
               <TouchableOpacity
                 key={item.key}
                 onPress={() => {
-                  navigation.navigate("Section", {
-                    section: item.screen,
-                    id: id,
-                  });
+                  selectedHandler(item.screen);
+                  // navigation.navigate("Section", {
+                  //   section: item.screen,
+                  //   id: id,
+                  //   data: selectedClient,
+                  // });
                 }}
                 style={{
                   backgroundColor: Colors.primary,
@@ -799,6 +973,40 @@ const styles = StyleSheet.create({
   modalText: {
     marginBottom: 15,
     textAlign: "center",
+  },
+  panelHeader: {
+    alignItems: "center",
+  },
+  panelHandle: {
+    width: 40,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: "#00000040",
+    marginBottom: 10,
+  },
+  panelTitle: {
+    fontSize: 27,
+    height: 35,
+  },
+  panelSubtitle: {
+    fontSize: 14,
+    color: "gray",
+    height: 30,
+    marginBottom: 10,
+  },
+  panelButton: {
+    padding: 13,
+    borderRadius: 10,
+    backgroundColor: Colors.primary,
+    alignItems: "center",
+    alignSelf: "center",
+    marginVertical: 7,
+    width: 200,
+  },
+  panelButtonTitle: {
+    fontSize: 17,
+    fontWeight: "bold",
+    color: "white",
   },
 });
 

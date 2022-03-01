@@ -5364,6 +5364,11 @@ react-native-iphone-x-helper@^1.3.1:
   resolved "https://registry.npmjs.org/react-native-iphone-x-helper/-/react-native-iphone-x-helper-1.3.1.tgz"
   integrity sha512-HOf0jzRnq2/aFUcdCJ9w9JGzN3gdEg0zFE4FyYlp4jtidqU03D5X7ZegGKfT1EWteR0gPBGp9ye5T5FvSWi9Yg==
 
+react-native-orientation-loading-overlay@^0.1.6:
+  version "0.1.6"
+  resolved "https://registry.yarnpkg.com/react-native-orientation-loading-overlay/-/react-native-orientation-loading-overlay-0.1.6.tgz#fe8900828c28aa786c822dadf6fe55401f59da8e"
+  integrity sha512-SbsBFnZIejF/zZy3nL2vmmZkUovQ9ed28b6p2x8ZhAYoseHyO3dS0iahhPu1eSneGE2+XVw+zoKHmxOmVFmKXw==
+
 react-native-paper@^4.11.2:
   version "4.11.2"
   resolved "https://registry.npmjs.org/react-native-paper/-/react-native-paper-4.11.2.tgz"
