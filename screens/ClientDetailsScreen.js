@@ -10,7 +10,6 @@ import {
   Alert,
   SafeAreaView,
   Modal,
-  Pressable,
   Dimensions,
   TouchableOpacity,
   Button,
@@ -478,15 +477,15 @@ const ClientDetailsScreen = ({ route, navigation }) => {
             <Headline>{noteDetailTitle}</Headline>
             <Paragraph>{noteDetailNote}</Paragraph>
             <View style={{ marginTop: 100 }}>
-              <Pressable
+              <TouchableOpacity
                 style={[styles.button, styles.buttonClose]}
                 onPress={() => {
                   setNoteDetailModal(false);
                 }}
               >
                 <Text style={styles.textStyle}>Cerrar</Text>
-              </Pressable>
-              <Pressable
+              </TouchableOpacity>
+              <TouchableOpacity
                 //   disabled={!titleIsValid || text.length < 10}
                 style={[styles.button, styles.buttonOpen]}
                 onPress={() => {
@@ -500,7 +499,7 @@ const ClientDetailsScreen = ({ route, navigation }) => {
                 }}
               >
                 <Text style={styles.textStyle}>Editar</Text>
-              </Pressable>
+              </TouchableOpacity>
             </View>
           </View>
         </View>
@@ -678,7 +677,7 @@ const ClientDetailsScreen = ({ route, navigation }) => {
           </View>
         ) : (
           <ScrollView
-            showsVerticalScrollIndicator={false}
+            showsHorizontalScrollIndicator={false}
             horizontal
             style={{ height: 100 }}
           >

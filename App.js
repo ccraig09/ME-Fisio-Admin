@@ -1,8 +1,12 @@
 import React, { useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View, LogBox } from "react-native";
 import Providers from "./navigation";
 import * as Font from "expo-font";
 import AppLoading from "expo-app-loading";
+
+LogBox.ignoreLogs([
+  "AsyncStorage has been extracted from react-native core and will be removed in a future release. ",
+]);
 
 const fetchFonts = async () => {
   await Font.loadAsync({

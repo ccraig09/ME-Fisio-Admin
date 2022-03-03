@@ -279,6 +279,43 @@ export const AuthProvider = ({ children, navigation }) => {
               },
               { merge: true }
             );
+            await db
+              .doc(id)
+              .collection("PdfData")
+              .doc(id)
+              .set(
+                {
+                  [title]: data,
+                },
+                { merge: true }
+              );
+          } catch (e) {
+            const errorMes = firebaseErrors[e.code];
+            alert(e);
+            console.log(e);
+          }
+        },
+        newNote: async (title, data, section, id) => {
+          console.log("note being updated", title, data, id);
+          try {
+            await db.doc(id).collection(section).doc().set(
+              {
+                title: title,
+                data: data,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+              },
+              { merge: true }
+            );
+            await db
+              .doc(id)
+              .collection("PdfData")
+              .doc(id)
+              .set(
+                {
+                  [title]: data,
+                },
+                { merge: true }
+              );
           } catch (e) {
             const errorMes = firebaseErrors[e.code];
             alert(e);

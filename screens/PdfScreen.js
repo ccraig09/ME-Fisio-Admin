@@ -68,7 +68,7 @@ const PdfScreen = ({ route, navigation }) => {
 
       picUri = result.uri;
     };
-    await takePhotoFromCamera();
+    // await takePhotoFromCamera();
     let docUri;
     const pickDocument = async () => {
       let result = await DocumentPicker.getDocumentAsync({
@@ -82,9 +82,9 @@ const PdfScreen = ({ route, navigation }) => {
     const formPdfBytes = await FileSystem.readAsStringAsync(docUri, {
       encoding: FileSystem.EncodingType.Base64,
     });
-    const imageBytes = await FileSystem.readAsStringAsync(picUri, {
-      encoding: FileSystem.EncodingType.Base64,
-    });
+    // const imageBytes = await FileSystem.readAsStringAsync(picUri, {
+    //   encoding: FileSystem.EncodingType.Base64,
+    // });
 
     // const frontalAntesBytes = await
 
@@ -101,37 +101,37 @@ const PdfScreen = ({ route, navigation }) => {
     // Get the form containing all the fields
     const form = pdfDoc.getForm();
 
-    const marioImage = await pdfDoc.embedJpg(imageBytes);
+    // const marioImage = await pdfDoc.embedJpg(imageBytes);
 
     // Get all fields in the PDF by their names
     // page 1
 
     const nameField = form.getTextField("nombre");
     nameField.setText(results.Nombre);
-    // const DomicilioField = form.getTextField("Domicilio");
-    // DomicilioField.setText(results.Domicilio);
-    // const telefonoField = form.getTextField("telefono");
-    // telefonoField.setText(results.telefono);
-    // const ocupacionField = form.getTextField("ocupacion");
-    // ocupacionField.setText(results.ocupacion);
+    const DomicilioField = form.getTextField("Domicilio");
+    DomicilioField.setText(results.Domicilio);
+    const telefonoField = form.getTextField("telefono");
+    telefonoField.setText(results.Telefono);
+    const ocupacionField = form.getTextField("ocupacion");
+    ocupacionField.setText(results.Ocupacion);
     const sexoField = form.getTextField("sexo");
-    sexoField.setText(results.sexo);
-    // const edadField = form.getTextField("edad");
-    // edadField.setText(results.edad);
-    // const ecivilField = form.getTextField("ecivil");
-    // ecivilField.setText(results.ecivil);
-    // const terapeutaField = form.getTextField("terapeuta");
-    // terapeutaField.setText(results.terapeuta);
-    // const expedienteField = form.getTextField("expediente");
-    // expedienteField.setText(results.expediente);
-    // const dayField = form.getTextField("day");
-    // dayField.setText(results.day);
-    // const monthField = form.getTextField("month");
-    // monthField.setText(results.month);
-    // const yearField = form.getTextField("year");
-    // yearField.setText(results.year);
-    // const pesoField = form.getTextField("peso");
-    // pesoField.setText("192");
+    sexoField.setText(results.Sexo);
+    const edadField = form.getTextField("edad");
+    edadField.setText(results.Edad);
+    const ecivilField = form.getTextField("ecivil");
+    ecivilField.setText(results["Estado Civil"]);
+    const terapeutaField = form.getTextField("terapeuta");
+    terapeutaField.setText(results.Terapeuta);
+    const expedienteField = form.getTextField("expediente");
+    expedienteField.setText(results.Expediente);
+    const dayField = form.getTextField("day");
+    dayField.setText(results.Day);
+    const monthField = form.getTextField("month");
+    monthField.setText(results.Month);
+    const yearField = form.getTextField("year");
+    yearField.setText(results.Year);
+    const pesoField = form.getTextField("peso");
+    pesoField.setText(results.Peso);
     // const tallaField = form.getTextField("talla");
     // tallaField.setText(results.talla);
     // const estaturaField = form.getTextField("estatura");

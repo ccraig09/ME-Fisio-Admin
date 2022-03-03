@@ -22,7 +22,6 @@ import Icon from "react-native-vector-icons/Ionicons";
 import Colors from "../constants/Colors";
 import { Avatar, ListItem } from "react-native-elements";
 import { useFocusEffect } from "@react-navigation/native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 // import Moment from "moment";
 // import { extendMoment } from "moment-range";
 
@@ -288,11 +287,11 @@ const ClientListScreen = ({ navigation }) => {
 
       // fetchMemberDetails();
       fetchCoaches();
-      AsyncStorage.getItem("userData").then((value) => {
-        const data = JSON.parse(value);
-        // console.log(typeof data.Fir);
-        setUserName(typeof data === "object" ? "" : data.givenName);
-      });
+      // AsyncStorage.getItem("userData").then((value) => {
+      //   const data = JSON.parse(value);
+      //   // console.log(typeof data.Fir);
+      //   setUserName(typeof data === "object" ? "" : data.givenName);
+      // });
     }, [])
   );
 

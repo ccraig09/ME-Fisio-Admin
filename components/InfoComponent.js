@@ -10,33 +10,52 @@ import {
   TouchableOpacity,
 } from "react-native";
 import Colors from "../constants/Colors";
-import { TextInput, HelperText, Headline } from "react-native-paper";
+import {
+  TextInput,
+  HelperText,
+  Headline,
+  Button,
+  Checkbox,
+} from "react-native-paper";
 import { AuthContext } from "../navigation/AuthProvider";
 import { useFocusEffect } from "@react-navigation/native";
 import firebase from "../components/firebase";
 import OrientationLoadingOverlay from "react-native-orientation-loading-overlay";
 
 const InfoComponent = (props) => {
-  const { updateNote } = useContext(AuthContext);
+  const { updateNote, newNote } = useContext(AuthContext);
   const [noteModal, setNoteModal] = useState(false);
+  const [addModal, setAddModal] = useState(false);
   const [text, setText] = useState("");
-  const [header, setHeader] = useState();
+  const [header, setHeader] = useState("");
   const [data, setData] = useState();
   const [key, setKey] = useState();
   const [facts, setFacts] = useState();
   const [isLoading, setIsLoading] = useState(false);
+  const [titleIsValid, setTitleIsValid] = useState(true);
+  const [textIsValid, setTextIsValid] = useState(true);
+  const [title, setTitle] = useState("");
+  const [checked, setChecked] = useState(false);
+  const [hasCheck, setHasCheck] = useState(false);
 
-  const testList = [
-    { title: "Informacion de Cliente", screen: "Info", key: 1 },
-    { title: "Evaluacion Muscular", screen: "Muscular", key: 2 },
-    ,
-    { title: "Fecha Nacimiento", data: "21 de feb 1991", key: 3 },
-    ,
-    { title: "Lesion", data: "Rodilla derecha been huring for a min", key: 4 },
-    { title: "Telefono", data: "+5911234567", key: 5 },
-    { title: "Peso", data: "78 kilos", key: 6 },
-    ,
-  ];
+  const hasErrors = (val) => {
+    if (val.length < 2) {
+      setHeader(val);
+      setTitleIsValid(false);
+    } else {
+      setHeader(val);
+      setTitleIsValid(true);
+    }
+  };
+  const hasErrorsNote = (val) => {
+    if (val.length < 1) {
+      setText(val);
+      setTextIsValid(false);
+    } else {
+      setText(val);
+      setTextIsValid(true);
+    }
+  };
 
   useFocusEffect(
     React.useCallback(() => {
@@ -107,14 +126,26 @@ const InfoComponent = (props) => {
     // }
     fetchFacts();
     setIsLoading(false);
+    setHeader("");
+    setText("");
+    setAddModal(false);
     setNoteModal(false);
+  };
+  const addDataHandler = () => {
+    setIsLoading(true);
+    newNote(header, text, props.section, props.id);
 
-    // setText("");
-    // setTitle("");
-    // setEditMode(false);
-    // setTimeout(() => {
-    //   fetchMemberNotes();
-    // }, 1000);
+    // if (!editMode) {
+    //   addNote(title, text, id);
+    // } else {
+    //   editNote(title, text, id, noteDetailId);
+    // }
+    fetchFacts();
+    setIsLoading(false);
+    setHeader("");
+    setText("");
+    setAddModal(false);
+    setNoteModal(false);
   };
   return (
     <SafeAreaView style={styles.container}>
@@ -132,6 +163,7 @@ const InfoComponent = (props) => {
         onRequestClose={() => {
           setText("");
           setTitle("");
+          setHeader("");
           setNoteModal(false);
           setTitleIsValid(true);
           setTextIsValid(true);
@@ -164,7 +196,8 @@ const InfoComponent = (props) => {
                 onPress={() => {
                   setText("");
                   setData("");
-                  setNoteModal(false);
+                  setHeader("");
+                  setAddModal(false);
                   // setTitleIsValid(true);
                   // setTextIsValid(true);
                 }}
@@ -187,7 +220,143 @@ const InfoComponent = (props) => {
           </View>
         </View>
       </Modal>
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={addModal}
+        onRequestClose={() => {
+          setText("");
+          setTitle("");
+          setAddModal(false);
+          setTitleIsValid(true);
+          setTextIsValid(true);
+        }}
+      >
+        <View style={styles.centeredView}>
+          <View style={styles.modalView}>
+            <View style={{ height: 100, width: "100%" }}>
+              <TextInput
+                underlineColor={Colors.primary}
+                activeUnderlineColor={Colors.primary}
+                label="Titulo"
+                value={header}
+                maxLength={20}
+                onChangeText={(text) => hasErrors(text)}
+                right={<TextInput.Affix text={`${header.length}/20`} />}
+                error={!titleIsValid}
+              />
+              <HelperText type="error" visible={!titleIsValid}>
+                El titulo es muy corto!
+              </HelperText>
+            </View>
+            <View style={{ height: 100, width: "100%" }}>
+              <TextInput
+                multiline
+                underlineColor={Colors.primary}
+                activeUnderlineColor={Colors.primary}
+                label={hasCheck ? "Especifique" : "Data"}
+                value={text}
+                onChangeText={(text) => hasErrorsNote(text)}
+                error={!textIsValid}
+              />
+              <HelperText type="error" visible={!textIsValid}>
+                Muy Corto!
+              </HelperText>
+            </View>
+            <Button
+              style={{ width: "80%", alignSelf: "center", marginBottom: 15 }}
+              labelStyle={{ color: "white" }}
+              color={Colors.primary}
+              icon={hasCheck ? "close" : "check"}
+              mode="contained"
+              onPress={() => {
+                setHasCheck((prevState) => !prevState);
+              }}
+            >
+              tiene check
+            </Button>
+            {hasCheck && (
+              <View style={{ flexDirection: "row", alignItems: "center" }}>
+                <Text style={{ fontSize: 20 }}>{header}</Text>
+
+                <View style={{ borderWidth: 1, marginLeft: 10 }}>
+                  <Checkbox
+                    status={checked ? "checked" : "unchecked"}
+                    uncheckedColor={"blue"}
+                    color={"black"}
+                    onPress={() => {
+                      setChecked(!checked);
+                    }}
+                  />
+                </View>
+              </View>
+            )}
+            <View style={{ marginTop: 50 }}>
+              <TouchableOpacity
+                style={[styles.button, styles.buttonClose]}
+                onPress={() => {
+                  setText("");
+                  setTitle("");
+                  setHeader("");
+                  setAddModal(false);
+                  setNoteModal(false);
+                  setTitleIsValid(true);
+                  setTextIsValid(true);
+                  setHasCheck(false);
+                }}
+              >
+                <Text style={styles.textStyle}>Cancelar</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                disabled={!titleIsValid || text.length < 1}
+                style={[
+                  styles.button,
+                  header.length >= 2 && text.length > 1
+                    ? styles.buttonOpen
+                    : styles.buttonDisabled,
+                ]}
+                onPress={() => {
+                  // console.log("almost ready to save");
+
+                  addDataHandler();
+                }}
+              >
+                <Text style={styles.textStyle}>Guardar</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
       <View style={{ flex: 1, width: "100%" }}>
+        {/* {facts.map((note, index) => {
+          return (
+            <TextInput
+              key={index}
+              underlineColor={Colors.primary}
+              activeUnderlineColor={Colors.primary}
+              // label="Data"
+              placeholder={note.title}
+              value={text}
+              maxLength={20}
+              onChangeText={(text) => setText(text)}
+              right={<TextInput.Affix text={`${text.length}/20`} />}
+              // error={!titleIsValid}
+            />
+          );
+        })} */}
+        <Button
+          style={{ width: "50%", alignSelf: "center", marginTop: 15 }}
+          labelStyle={{ color: "white" }}
+          color={Colors.primary}
+          icon="plus"
+          mode="contained"
+          onPress={() => {
+            setAddModal(true);
+          }}
+        >
+          Agregar
+        </Button>
+
         <FlatList
           data={facts}
           horizontal={false}
@@ -253,7 +422,7 @@ const styles = StyleSheet.create({
   },
   modalView: {
     width: "80%",
-    height: "50%",
+    height: "65%",
     margin: 20,
     backgroundColor: "white",
     borderRadius: 20,
