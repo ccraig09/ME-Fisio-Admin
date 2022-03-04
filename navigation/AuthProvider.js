@@ -295,11 +295,12 @@ export const AuthProvider = ({ children, navigation }) => {
             console.log(e);
           }
         },
-        newNote: async (title, data, section, id) => {
+        newNote: async (title, data, section, id, checkable) => {
           console.log("note being updated", title, data, id);
           try {
             await db.doc(id).collection(section).doc().set(
               {
+                checkable: checkable,
                 title: title,
                 data: data,
                 timestamp: firebase.firestore.FieldValue.serverTimestamp(),
@@ -319,6 +320,88 @@ export const AuthProvider = ({ children, navigation }) => {
           } catch (e) {
             const errorMes = firebaseErrors[e.code];
             alert(e);
+            console.log(e);
+          }
+        },
+        newNoteCheck: async (
+          title,
+          data,
+          checkSi,
+          checkNo,
+          section,
+          id,
+          checkable
+        ) => {
+          let answer;
+          let result;
+          let join;
+
+          if (checkSi === true) {
+            join = "si";
+          }
+          if (checkNo === true) {
+            join = "no";
+          }
+          answer = true;
+          // answerSi = checkSi === true ? "si" : "no";
+          // answerNo = checkNo ? "si" : "no";
+          // answer = answerSi === "si" ? "si" : "no";
+          result = title.concat(join);
+          try {
+            await db
+              .doc(id)
+              .collection(section)
+              .doc()
+              .set(
+                {
+                  chosen: join,
+                  [result]: answer,
+                  checkable: checkable,
+                  title: title,
+                  data: data,
+                  timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                },
+                { merge: true }
+              );
+            await db
+              .doc(id)
+              .collection("PdfData")
+              .doc(id)
+              .set(
+                {
+                  [title]: data,
+                },
+                { merge: true }
+              );
+            await db
+              .doc(id)
+              .collection("PdfData")
+              .doc(id)
+              .set(
+                {
+                  [result]: answer,
+                },
+                { merge: true }
+              );
+          } catch (e) {
+            const errorMes = firebaseErrors[e.code];
+            alert(e);
+            console.log(e);
+          }
+        },
+        deleteData: async (screen, id, header, pdfData, key) => {
+          console.log("deleteing eval", screen, id, pdfData);
+          try {
+            await db.doc(id).collection(screen).doc(key).delete();
+            await db
+              .doc(id)
+              .collection("PdfData")
+              .doc(id)
+              .update({
+                [header]: firebase.firestore.FieldValue.delete(),
+                [pdfData]: firebase.firestore.FieldValue.delete(),
+              });
+          } catch (e) {
             console.log(e);
           }
         },

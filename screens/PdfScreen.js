@@ -20,8 +20,8 @@ const PdfScreen = ({ route, navigation }) => {
 
   const [pdfloaded, setPdfDoc] = useState();
   const [results, setResults] = useState({
-    diabetessi: "check",
-    diabetesno: "uncheck",
+    // diabetessi: "check",
+    // diabetesno: "uncheck",
   });
 
   useFocusEffect(
@@ -132,23 +132,23 @@ const PdfScreen = ({ route, navigation }) => {
     yearField.setText(results.Year);
     const pesoField = form.getTextField("peso");
     pesoField.setText(results.Peso);
-    // const tallaField = form.getTextField("talla");
-    // tallaField.setText(results.talla);
-    // const estaturaField = form.getTextField("estatura");
-    // estaturaField.setText(results.estatura);
-    // const imcField = form.getTextField("imc");
-    // imcField.setText(results.imc);
-    // const motivoField = form.getTextField("motivo");
-    // motivoField.setText(results.motivo);
-    // const tratamientoField = form.getTextField("tratamiento");
-    // tratamientoField.setText(results.tratamiento);
+    const tallaField = form.getTextField("talla");
+    tallaField.setText(results.Talla);
+    const estaturaField = form.getTextField("estatura");
+    estaturaField.setText(results.Estatura);
+    const imcField = form.getTextField("imc");
+    imcField.setText(results.Imc);
+    const motivoField = form.getTextField("motivo");
+    motivoField.setText(results.Motivo);
+    const tratamientoField = form.getTextField("tratamiento");
+    tratamientoField.setText(results.Tratamiento);
     const diabetessiCheck = form.getCheckBox("diabetes si");
     {
-      results.diabetessi === "check" && diabetessiCheck.check();
+      results.Diabetessi === "true" && diabetessiCheck.check();
     }
     const diabetesnoCheck = form.getCheckBox("diabetes no");
     {
-      results.diabetesno === "check" && diabetesnoCheck.check();
+      results.Diabetesno === "true" && diabetesnoCheck.check();
     }
     // const diabetesespField = form.getTextField("diabetes esp");
     // diabetesespField.setText(results.diabetesesp);

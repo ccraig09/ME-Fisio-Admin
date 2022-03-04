@@ -7,6 +7,7 @@ import {
   FlatList,
   SafeAreaView,
   Modal,
+  Alert,
   TouchableOpacity,
 } from "react-native";
 import Colors from "../constants/Colors";
@@ -23,7 +24,8 @@ import firebase from "../components/firebase";
 import OrientationLoadingOverlay from "react-native-orientation-loading-overlay";
 
 const InfoComponent = (props) => {
-  const { updateNote, newNote } = useContext(AuthContext);
+  const { updateNote, newNote, newNoteCheck, deleteData } =
+    useContext(AuthContext);
   const [noteModal, setNoteModal] = useState(false);
   const [addModal, setAddModal] = useState(false);
   const [text, setText] = useState("");
@@ -35,8 +37,11 @@ const InfoComponent = (props) => {
   const [titleIsValid, setTitleIsValid] = useState(true);
   const [textIsValid, setTextIsValid] = useState(true);
   const [title, setTitle] = useState("");
-  const [checked, setChecked] = useState(false);
+  const [checkedSi, setCheckedSi] = useState(false);
+  const [checkedNo, setCheckedNo] = useState(false);
   const [hasCheck, setHasCheck] = useState(false);
+  const [checkable, setCheckable] = useState(false);
+  const [chosen, setChosen] = useState("");
 
   const hasErrors = (val) => {
     if (val.length < 2) {
@@ -68,12 +73,16 @@ const InfoComponent = (props) => {
             .collection("Members")
             .doc(props.id)
             .collection(props.section)
+            .orderBy("title")
             .get()
             .then((querySnapshot) => {
               querySnapshot.forEach((doc) => {
-                const { title, data, timeStamp } = doc.data();
+                const { title, data, timeStamp, checkable, chosen } =
+                  doc.data();
                 list.push({
                   key: doc.id,
+                  chosen: chosen,
+                  checkable: checkable,
                   title: title,
                   data: data,
                   timeStamp: timeStamp,
@@ -98,13 +107,16 @@ const InfoComponent = (props) => {
         .collection("Members")
         .doc(props.id)
         .collection(props.section)
+        .orderBy("title")
         .get()
         .then((querySnapshot) => {
           querySnapshot.forEach((doc) => {
-            const { title, data, timeStamp } = doc.data();
+            const { title, data, timeStamp, checkable, chosen } = doc.data();
             list.push({
               key: doc.id,
+              chosen: chosen,
               title: title,
+              checkable: checkable,
               data: data,
               timeStamp: timeStamp,
             });
@@ -133,7 +145,22 @@ const InfoComponent = (props) => {
   };
   const addDataHandler = () => {
     setIsLoading(true);
-    newNote(header, text, props.section, props.id);
+    let checkable;
+    if (hasCheck) {
+      checkable = true;
+      newNoteCheck(
+        header,
+        text,
+        checkedSi,
+        checkedNo,
+        props.section,
+        props.id,
+        checkable
+      );
+    } else {
+      checkable = false;
+      newNote(header, text, props.section, props.id, checkable);
+    }
 
     // if (!editMode) {
     //   addNote(title, text, id);
@@ -144,8 +171,33 @@ const InfoComponent = (props) => {
     setIsLoading(false);
     setHeader("");
     setText("");
+    setCheckedNo(false);
+    setCheckedSi(false);
+    setHasCheck(false);
     setAddModal(false);
     setNoteModal(false);
+  };
+  const deleteHandler = () => {
+    const pdfData = header.concat(chosen);
+
+    Alert.alert("Borrar Nota?", "Quiere borrar esta nota?", [
+      { text: "No", style: "default" },
+      {
+        text: "Si",
+        style: "destructive",
+        onPress: async () => {
+          await deleteData(props.section, props.id, header, pdfData, key);
+          setText("");
+          setData("");
+          setHeader("");
+          setCheckable(false);
+          setChosen("");
+          setNoteModal(false);
+
+          fetchFacts();
+        },
+      },
+    ]);
   };
   return (
     <SafeAreaView style={styles.container}>
@@ -189,7 +241,43 @@ const InfoComponent = (props) => {
                 El titulo es muy corto!
               </HelperText> */}
             </View>
-
+            {checkable && (
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  marginTop: 15,
+                }}
+              >
+                <Text style={{ fontSize: 20 }}>{header}</Text>
+                <View style={{ alignItems: "center", marginLeft: 10 }}>
+                  <View style={{ borderWidth: 1 }}>
+                    <Checkbox
+                      status={chosen === "si" ? "checked" : "unchecked"}
+                      uncheckedColor={"blue"}
+                      color={"black"}
+                      // onPress={() => {
+                      //   setCheckedSi(!checkedSi);
+                      // }}
+                    />
+                  </View>
+                  <Text style={{ fontSize: 18, marginTop: 5 }}>Si</Text>
+                </View>
+                <View style={{ alignItems: "center", marginLeft: 10 }}>
+                  <View style={{ borderWidth: 1 }}>
+                    <Checkbox
+                      status={chosen === "no" ? "checked" : "unchecked"}
+                      uncheckedColor={"blue"}
+                      color={"black"}
+                      // onPress={() => {
+                      //   setCheckedNo(!checkedNo);
+                      // }}
+                    />
+                  </View>
+                  <Text style={{ fontSize: 18, marginTop: 5 }}>No</Text>
+                </View>
+              </View>
+            )}
             <View style={{ marginTop: 50 }}>
               <TouchableOpacity
                 style={[styles.button, styles.buttonClose]}
@@ -197,12 +285,24 @@ const InfoComponent = (props) => {
                   setText("");
                   setData("");
                   setHeader("");
-                  setAddModal(false);
+                  setNoteModal(false);
+                  setCheckable(false);
+                  setChosen("");
                   // setTitleIsValid(true);
                   // setTextIsValid(true);
                 }}
               >
                 <Text style={styles.textStyle}>Cancelar</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.button, styles.buttonDelete]}
+                onPress={() => {
+                  deleteHandler();
+                  // setTitleIsValid(true);
+                  // setTextIsValid(true);
+                }}
+              >
+                <Text style={styles.textStyle}>Borrar</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 disabled={text.length < 1}
@@ -278,16 +378,31 @@ const InfoComponent = (props) => {
             {hasCheck && (
               <View style={{ flexDirection: "row", alignItems: "center" }}>
                 <Text style={{ fontSize: 20 }}>{header}</Text>
-
-                <View style={{ borderWidth: 1, marginLeft: 10 }}>
-                  <Checkbox
-                    status={checked ? "checked" : "unchecked"}
-                    uncheckedColor={"blue"}
-                    color={"black"}
-                    onPress={() => {
-                      setChecked(!checked);
-                    }}
-                  />
+                <View style={{ alignItems: "center", marginLeft: 10 }}>
+                  <View style={{ borderWidth: 1 }}>
+                    <Checkbox
+                      status={checkedSi ? "checked" : "unchecked"}
+                      uncheckedColor={"blue"}
+                      color={"black"}
+                      onPress={() => {
+                        setCheckedSi(!checkedSi);
+                      }}
+                    />
+                  </View>
+                  <Text style={{ fontSize: 18, marginTop: 5 }}>Si</Text>
+                </View>
+                <View style={{ alignItems: "center", marginLeft: 10 }}>
+                  <View style={{ borderWidth: 1 }}>
+                    <Checkbox
+                      status={checkedNo ? "checked" : "unchecked"}
+                      uncheckedColor={"blue"}
+                      color={"black"}
+                      onPress={() => {
+                        setCheckedNo(!checkedNo);
+                      }}
+                    />
+                  </View>
+                  <Text style={{ fontSize: 18, marginTop: 5 }}>No</Text>
                 </View>
               </View>
             )}
@@ -298,11 +413,13 @@ const InfoComponent = (props) => {
                   setText("");
                   setTitle("");
                   setHeader("");
+                  setHasCheck(false);
+                  setCheckedNo(false);
+                  setCheckedSi(false);
                   setAddModal(false);
                   setNoteModal(false);
                   setTitleIsValid(true);
                   setTextIsValid(true);
-                  setHasCheck(false);
                 }}
               >
                 <Text style={styles.textStyle}>Cancelar</Text>
@@ -369,7 +486,9 @@ const InfoComponent = (props) => {
                 setHeader(itemData.item.title);
                 setData(itemData.item.data);
                 setKey(itemData.item.key);
+                setCheckable(itemData.item.checkable);
                 setNoteModal(true);
+                setChosen(itemData.item.chosen);
               }}
             >
               <Text style={styles.dataButtonTitle}>{itemData.item.title}</Text>
@@ -438,6 +557,7 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   button: {
+    marginVertical: 5,
     borderRadius: 20,
     padding: 10,
     elevation: 2,
@@ -452,6 +572,9 @@ const styles = StyleSheet.create({
   },
   buttonClose: {
     backgroundColor: "red",
+  },
+  buttonDelete: {
+    backgroundColor: "purple",
   },
   textStyle: {
     color: "white",
