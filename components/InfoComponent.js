@@ -41,7 +41,8 @@ const InfoComponent = (props) => {
   const [checkedNo, setCheckedNo] = useState(false);
   const [hasCheck, setHasCheck] = useState(false);
   const [checkable, setCheckable] = useState(false);
-  const [chosen, setChosen] = useState("");
+  const [chosen, setChosen] = useState(null);
+  const [originalChosen, setOriginalChosen] = useState(null);
 
   const hasErrors = (val) => {
     if (val.length < 2) {
@@ -127,9 +128,18 @@ const InfoComponent = (props) => {
       console.log(e);
     }
   };
-  const saveDataHandler = () => {
-    setIsLoading(true);
-    updateNote(header, text, key, props.section, props.id);
+  const saveDataHandler = async () => {
+    const pdfData = header.concat(originalChosen);
+
+    await updateNote(
+      header,
+      text,
+      key,
+      props.section,
+      props.id,
+      chosen,
+      pdfData
+    );
 
     // if (!editMode) {
     //   addNote(title, text, id);
@@ -140,6 +150,8 @@ const InfoComponent = (props) => {
     setIsLoading(false);
     setHeader("");
     setText("");
+    setChosen(null);
+    setOriginalChosen(null);
     setAddModal(false);
     setNoteModal(false);
   };
@@ -191,7 +203,7 @@ const InfoComponent = (props) => {
           setData("");
           setHeader("");
           setCheckable(false);
-          setChosen("");
+          setChosen(null);
           setNoteModal(false);
 
           fetchFacts();
@@ -256,9 +268,9 @@ const InfoComponent = (props) => {
                       status={chosen === "si" ? "checked" : "unchecked"}
                       uncheckedColor={"blue"}
                       color={"black"}
-                      // onPress={() => {
-                      //   setCheckedSi(!checkedSi);
-                      // }}
+                      onPress={() => {
+                        setChosen("si");
+                      }}
                     />
                   </View>
                   <Text style={{ fontSize: 18, marginTop: 5 }}>Si</Text>
@@ -269,9 +281,9 @@ const InfoComponent = (props) => {
                       status={chosen === "no" ? "checked" : "unchecked"}
                       uncheckedColor={"blue"}
                       color={"black"}
-                      // onPress={() => {
-                      //   setCheckedNo(!checkedNo);
-                      // }}
+                      onPress={() => {
+                        setChosen("no");
+                      }}
                     />
                   </View>
                   <Text style={{ fontSize: 18, marginTop: 5 }}>No</Text>
@@ -287,7 +299,8 @@ const InfoComponent = (props) => {
                   setHeader("");
                   setNoteModal(false);
                   setCheckable(false);
-                  setChosen("");
+                  setChosen(null);
+                  setOriginalChosen(null);
                   // setTitleIsValid(true);
                   // setTextIsValid(true);
                 }}
@@ -311,6 +324,7 @@ const InfoComponent = (props) => {
                   text.length >= 1 ? styles.buttonOpen : styles.buttonDisabled,
                 ]}
                 onPress={() => {
+                  setIsLoading(true);
                   saveDataHandler();
                 }}
               >
@@ -485,10 +499,12 @@ const InfoComponent = (props) => {
               onPress={() => {
                 setHeader(itemData.item.title);
                 setData(itemData.item.data);
+                setText(itemData.item.data);
                 setKey(itemData.item.key);
                 setCheckable(itemData.item.checkable);
                 setNoteModal(true);
                 setChosen(itemData.item.chosen);
+                setOriginalChosen(itemData.item.chosen);
               }}
             >
               <Text style={styles.dataButtonTitle}>{itemData.item.title}</Text>

@@ -268,13 +268,25 @@ export const AuthProvider = ({ children, navigation }) => {
             console.log(errorMes);
           }
         },
-        updateNote: async (title, data, key, section, id) => {
+        updateNote: async (title, data, key, section, id, chosen, pdfData) => {
           console.log("note being updated", title, data, id);
+          const newTitle = title.concat(chosen);
+          // let newBool;
+          // let bool;
+          // if (chosen === "si") {
+          //   bool = true;
+          //   newBool = false;
+          // }
+          // if (chosen === "no") {
+          //   bool = false;
+          //   newBool = true;
+          // }
           try {
             await db.doc(id).collection(section).doc(key).set(
               {
                 title: title,
                 data: data,
+                chosen: chosen,
                 timestamp: firebase.firestore.FieldValue.serverTimestamp(),
               },
               { merge: true }
@@ -286,6 +298,23 @@ export const AuthProvider = ({ children, navigation }) => {
               .set(
                 {
                   [title]: data,
+                },
+                { merge: true }
+              );
+            await db
+              .doc(id)
+              .collection("PdfData")
+              .doc(id)
+              .update({
+                [pdfData]: firebase.firestore.FieldValue.delete(),
+              });
+            await db
+              .doc(id)
+              .collection("PdfData")
+              .doc(id)
+              .set(
+                {
+                  [newTitle]: true,
                 },
                 { merge: true }
               );
