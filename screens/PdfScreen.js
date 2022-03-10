@@ -20,7 +20,7 @@ const PdfScreen = ({ route, navigation }) => {
 
   const [pdfloaded, setPdfDoc] = useState();
   const [results, setResults] = useState({
-    // diabetessi: "check",
+    // diabetessi: true,
     // diabetesno: "uncheck",
   });
 
@@ -144,110 +144,110 @@ const PdfScreen = ({ route, navigation }) => {
     tratamientoField.setText(results.Tratamiento);
     const diabetessiCheck = form.getCheckBox("diabetes si");
     {
-      results.Diabetessi === "true" && diabetessiCheck.check();
+      results.Diabetessi === true && diabetessiCheck.check();
     }
     const diabetesnoCheck = form.getCheckBox("diabetes no");
     {
-      results.Diabetesno === "true" && diabetesnoCheck.check();
+      results.Diabetesno === true && diabetesnoCheck.check();
     }
-    // const diabetesespField = form.getTextField("diabetes esp");
-    // diabetesespField.setText(results.diabetesesp);
+    const diabetesespField = form.getTextField("diabetes esp");
+    diabetesespField.setText(results.Diabetes);
     // //
-    // const alergiasiCheck = form.getCheckBox("alergia si");
-    // {
-    //   results.alergiasi === "check" && alergiasiCheck.check();
-    // }
-    // const alergianoCheck = form.getCheckBox("alergia no");
-    // {
-    //   results.alergiano === "check" && alergianoCheck.check();
-    // }
-    // const alergiaespField = form.getTextField("alergia esp");
-    // alergiaespField.setText(results.alergiaesp);
+    const alergiasiCheck = form.getCheckBox("alergia si");
+    {
+      results.Alergiasi === true && alergiasiCheck.check();
+    }
+    const alergianoCheck = form.getCheckBox("alergia no");
+    {
+      results.Alergiano === true && alergianoCheck.check();
+    }
+    const alergiaespField = form.getTextField("alergia esp");
+    alergiaespField.setText(results.Alergia);
     // //
     // const cancersiCheck = form.getCheckBox("cancer si");
     // {
-    //   results.cancersi === "check" && cancersiCheck.check();
+    //   results.cancersi === true && cancersiCheck.check();
     // }
     // const cancernoCheck = form.getCheckBox("cancer no");
     // {
-    //   results.cancerno === "check" && cancernoCheck.check();
+    //   results.cancerno === true && cancernoCheck.check();
     // }
     // const cancerespField = form.getTextField("cancer esp");
     // cancerespField.setText(results.canceresp);
     // //
     // const transfusionessiCheck = form.getCheckBox("transfusiones si");
     // {
-    //   results.transfusionessi === "check" && transfusionessiCheck.check();
+    //   results.transfusionessi === true && transfusionessiCheck.check();
     // }
     // const transfusionesnoCheck = form.getCheckBox("transfusiones no");
     // {
-    //   results.transfusionesno === "check" && transfusionesnoCheck.check();
+    //   results.transfusionesno === true && transfusionesnoCheck.check();
     // }
     // const transfusionesespField = form.getTextField("transfusiones esp");
     // transfusionesespField.setText(results.transfusionesesp);
     // //
     // const enfreumáticassiCheck = form.getCheckBox("enf. reumáticas si");
     // {
-    //   results.enfreumáticassi === "check" && enfreumáticassiCheck.check();
+    //   results.enfreumáticassi === true && enfreumáticassiCheck.check();
     // }
     // const enfreumáticasnoCheck = form.getCheckBox("enf. reumáticas no");
     // {
-    //   results.enfreumáticasno === "check" && enfreumáticasnoCheck.check();
+    //   results.enfreumáticasno === true && enfreumáticasnoCheck.check();
     // }
     // const enfreumáticasespField = form.getTextField("enf. reumáticas esp");
     // enfreumáticasespField.setText(results.enfreumáticasesp);
     // //
     // const accidentessiCheck = form.getCheckBox("accidentes si");
     // {
-    //   results.accidentessi === "check" && accidentessiCheck.check();
+    //   results.accidentessi === true && accidentessiCheck.check();
     // }
     // const accidentesnoCheck = form.getCheckBox("accidentes no");
     // {
-    //   results.accidentesno === "check" && accidentesnoCheck.check();
+    //   results.accidentesno === true && accidentesnoCheck.check();
     // }
     // const accidentesespField = form.getTextField("accidentes esp");
     // accidentesespField.setText(results.accidentesesp);
     // //
     // const cardiopatiassiCheck = form.getCheckBox("cardiopatias si");
     // {
-    //   results.cardiopatiassi === "check" && cardiopatiassiCheck.check();
+    //   results.cardiopatiassi === true && cardiopatiassiCheck.check();
     // }
     // const cardiopatiasnoCheck = form.getCheckBox("cardiopatias no");
     // {
-    //   results.cardiopatiasno === "check" && cardiopatiasnoCheck.check();
+    //   results.cardiopatiasno === true && cardiopatiasnoCheck.check();
     // }
     // const cardiopatiasespField = form.getTextField("cardiopatias esp");
     // cardiopatiasespField.setText(results.cardiopatiasesp);
     // // //
     // // const cardiopatiassiCheck = form.getCheckBox("cardiopatias si");
     // // {
-    // //   results.cardiopatiassi === "check" && cardiopatiassiCheck.check();
+    // //   results.cardiopatiassi === true && cardiopatiassiCheck.check();
     // // }
     // // const cardiopatiasnoCheck = form.getCheckBox("cardiopatias no");
     // // {
-    // //   results.cardiopatiasno === "check" && cardiopatiasnoCheck.check();
+    // //   results.cardiopatiasno === true && cardiopatiasnoCheck.check();
     // // }
     // // const cardiopatiasespField = form.getTextField("cardiopatias esp");
     // // cardiopatiasespField.setText(results.cardiopatiasesp);
     // //
     // const cirugiasssiCheck = form.getCheckBox("cirugiass si");
     // {
-    //   results.cirugiasssi === "check" && cirugiasssiCheck.check();
+    //   results.cirugiasssi === true && cirugiasssiCheck.check();
     // }
     // const cirugiassnoCheck = form.getCheckBox("cirugiass no");
     // {
-    //   results.cirugiassno === "check" && cirugiassnoCheck.check();
+    //   results.cirugiassno === true && cirugiassnoCheck.check();
     // }
     // const cirugiassespField = form.getTextField("cirugiass esp");
     // cirugiassespField.setText(results.cirugiassesp);
     // //
     // const fracturassiCheck = form.getCheckBox("fracturas si");
     // {
-    //   results.fracturassi === "check" && fracturassiCheck.check();
+    //   results.fracturassi === true && fracturassiCheck.check();
     // }
     // const fracturasnoCheck = form.getCheckBox("fracturas no");
     // {
-    //   results.fracturasno === "check" && fracturasnoCheck.check();
+    //   results.fracturasno === true && fracturasnoCheck.check();
     // }
     // const fracturasespField = form.getTextField("fracturas esp");
     // fracturasespField.setText(results.fracturasesp);
@@ -263,11 +263,11 @@ const PdfScreen = ({ route, navigation }) => {
     // //
     // const espasmossiCheck = form.getCheckBox("espasmos si");
     // {
-    //   results.espasmossi === "check" && espasmossiCheck.check();
+    //   results.espasmossi === true && espasmossiCheck.check();
     // }
     // const espasmosnoCheck = form.getCheckBox("espasmos no");
     // {
-    //   results.espasmosno === "check" && espasmosnoCheck.check();
+    //   results.espasmosno === true && espasmosnoCheck.check();
     // }
     // const caracteristicasField = form.getTextField("caracteristicas");
     // caracteristicasField.setText(results.caracteristicas);

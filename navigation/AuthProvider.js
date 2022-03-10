@@ -7,6 +7,7 @@ export const AuthContext = createContext();
 export const AuthProvider = ({ children, navigation }) => {
   const [user, setUser] = useState(null);
   const db = firebase.firestore().collection("Members");
+  const dbN = firebase.firestore().collection("Notifications");
 
   const firebaseErrors = {
     "auth/app-deleted": "No se encontró la base de datos",
@@ -416,6 +417,46 @@ export const AuthProvider = ({ children, navigation }) => {
             const errorMes = firebaseErrors[e.code];
             alert(e);
             console.log(e);
+          }
+        },
+        readUpdate: async (key, boolean) => {
+          try {
+            // console.log("uploading expo token", expoPushToken);
+
+            await dbN
+              .doc("Mayra")
+              .collection("Client Notifications")
+              .doc(key)
+              .set(
+                {
+                  read: boolean,
+
+                  readDate: firebase.firestore.FieldValue.serverTimestamp(),
+                },
+                { merge: true }
+              );
+          } catch (e) {
+            const errorMes = firebaseErrors[e.code];
+            alert(errorMes);
+            console.log(errorMes);
+          }
+        },
+        addToken: async (expoPushToken) => {
+          try {
+            console.log("uploading expo token", expoPushToken);
+
+            await dbN.doc("Mayra").collection("User Info").doc().set(
+              {
+                expoPushToken,
+
+                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+              },
+              { merge: true }
+            );
+          } catch (e) {
+            const errorMes = firebaseErrors[e.code];
+            alert(errorMes);
+            console.log(errorMes);
           }
         },
         deleteData: async (screen, id, header, pdfData, key) => {

@@ -18,11 +18,24 @@
       "supportsTablet": true
     },
     "android": {
+      "useNextNotificationsApi": true,
+
       "adaptiveIcon": {
         "foregroundImage": "./assets/newLogo.png",
         "backgroundColor": "#FFFFFF"
       }
     },
+    "plugins": [
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/icon-noexlogo.png",
+          "color": "blue",
+          "mode": "production"
+        }
+      ]
+    ],
+
     "web": {
       "favicon": "./assets/favicon.png"
     }

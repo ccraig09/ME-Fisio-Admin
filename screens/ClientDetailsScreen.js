@@ -62,11 +62,11 @@ const ClientDetailsScreen = ({ route, navigation }) => {
     { title: "Informacion de Cliente", screen: "Info", key: 1 },
     { title: "Evaluacion Muscular", screen: "Muscular", key: 2 },
     ,
-    { title: "Prueba de Arcos Superiores", data: "Superiores", key: 3 },
+    { title: "Prueba de Arcos Superiores", screen: "Superiores", key: 3 },
     ,
-    { title: "Prueba de Arcos Superiores", data: "Inferiores", key: 4 },
-    { title: "Análisis de la Marcha", data: "Marcha", key: 5 },
-    { title: "Evaluación en la Postura", data: "Postura", key: 6 },
+    { title: "Prueba de Arcos Inferiores", screen: "Inferiores", key: 4 },
+    { title: "Análisis de la Marcha", screen: "Marcha", key: 5 },
+    { title: "Evaluación en la Postura", screen: "Postura", key: 6 },
     ,
   ];
 

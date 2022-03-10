@@ -38,20 +38,20 @@ const SectionScreen = ({ route, navigation }) => {
   );
 
   const selectedComponent = () => {
-    if (section === "Info") {
-      console.log("looking for info", section);
-      // console.log("info");
-      // return (
-      //   <View>
-      //     <Text>hello</Text>
-      //   </View>
-      // );
-      return <InfoComponent data={data} id={id} section={section} />;
-    }
-    if (section === "Muscular") {
-      console.log("muscle");
-      return <MuscularComponent />;
-    }
+    // if (section === "Info") {
+    //   console.log("looking for info", section);
+    // console.log("info");
+    // return (
+    //   <View>
+    //     <Text>hello</Text>
+    //   </View>
+    // );
+    return <InfoComponent data={data} id={id} section={section} />;
+    // }
+    // if (section === "Muscular") {
+    //   console.log("muscle");
+    //   return <MuscularComponent />;
+    // }
   };
   return selectedComponent();
 };

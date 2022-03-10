@@ -93,33 +93,6 @@ const CalenderHome = (props, { navigation }) => {
                 console.log("No such document!");
               }
             });
-          // .then((querySnapshot) => {
-          //   querySnapshot.forEach((doc) => {
-          //     console.log("doc data loaded", doc.data());
-          //     // const { userDataJson } = doc.data();
-
-          //     // const keyss = Object.keys(doc.data().userDataJson);
-          //     // console.log("i got the keys", keyss);
-          //     // list.push(doc.id);
-
-          //     // list.forEach((day) => {
-          //     //   mark[day] = [
-          //     //     {
-          //     //       time: "9:00AM - 10:00AM",
-          //     //       name: "carlos",
-          //     //       type: "Rehabilitacion",
-          //     //     },
-          //     //   ];
-          //     // });
-
-          //     // list.push({
-          //     //   date: doc.id,
-          //     //   Data: userDataJson,
-          //     // });
-          //   });
-          //   // console.log("listing", mark);
-          //   setReserves(doc.data());
-          // });
         } catch (e) {
           console.log(e);
         }
@@ -354,7 +327,9 @@ const CalenderHome = (props, { navigation }) => {
                   onPress={() => alert(item.Name, item.Time, item.Type)}
                 >
                   <Text style={styles.itemTime}>{item.Time}</Text>
-                  <Text style={styles.itemName}>{item.Name}</Text>
+                  <Text style={styles.itemName}>
+                    {item.Name} {item.Last}
+                  </Text>
                   <Text style={styles.itemType}>{item.Type}</Text>
                 </TouchableOpacity>
               </View>

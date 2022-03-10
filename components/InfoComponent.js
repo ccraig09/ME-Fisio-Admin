@@ -16,18 +16,25 @@ import {
   HelperText,
   Headline,
   Button,
+  Snackbar,
   Checkbox,
 } from "react-native-paper";
 import { AuthContext } from "../navigation/AuthProvider";
 import { useFocusEffect } from "@react-navigation/native";
 import firebase from "../components/firebase";
 import OrientationLoadingOverlay from "react-native-orientation-loading-overlay";
+import Toast from "react-native-tiny-toast";
 
 const InfoComponent = (props) => {
   const { updateNote, newNote, newNoteCheck, deleteData } =
     useContext(AuthContext);
   const [noteModal, setNoteModal] = useState(false);
   const [addModal, setAddModal] = useState(false);
+  const [visible, setVisible] = useState(false);
+  const onToggleSnackBar = () => setVisible(!visible);
+
+  const onDismissSnackBar = () => setVisible(false);
+
   const [text, setText] = useState("");
   const [header, setHeader] = useState("");
   const [data, setData] = useState();
@@ -129,6 +136,7 @@ const InfoComponent = (props) => {
     }
   };
   const saveDataHandler = async () => {
+    onToggleSnackBar();
     const pdfData = header.concat(originalChosen);
 
     await updateNote(
@@ -147,13 +155,15 @@ const InfoComponent = (props) => {
     //   editNote(title, text, id, noteDetailId);
     // }
     fetchFacts();
-    setIsLoading(false);
+    onDismissSnackBar();
+    // setIsLoading(false);
     setHeader("");
     setText("");
     setChosen(null);
     setOriginalChosen(null);
     setAddModal(false);
     setNoteModal(false);
+    // Toast.hide(toast);
   };
   const addDataHandler = () => {
     setIsLoading(true);
@@ -213,13 +223,25 @@ const InfoComponent = (props) => {
   };
   return (
     <SafeAreaView style={styles.container}>
-      <OrientationLoadingOverlay
+      {/* <OrientationLoadingOverlay
         visible={isLoading}
         color="white"
         indicatorSize="large"
         messageFontSize={24}
         message="Cargando..."
-      />
+      /> */}
+      <Snackbar
+        visible={visible}
+        onDismiss={onDismissSnackBar}
+        action={{
+          // label: "Undo",
+          onPress: () => {
+            // Do something
+          },
+        }}
+      >
+        Actualizando...
+      </Snackbar>
       <Modal
         animationType="slide"
         transparent={true}
@@ -324,7 +346,7 @@ const InfoComponent = (props) => {
                   text.length >= 1 ? styles.buttonOpen : styles.buttonDisabled,
                 ]}
                 onPress={() => {
-                  setIsLoading(true);
+                  // setIsLoading(true);
                   saveDataHandler();
                 }}
               >
@@ -365,7 +387,7 @@ const InfoComponent = (props) => {
             </View>
             <View style={{ height: 100, width: "100%" }}>
               <TextInput
-                multiline
+                // multiline
                 underlineColor={Colors.primary}
                 activeUnderlineColor={Colors.primary}
                 label={hasCheck ? "Especifique" : "Data"}
