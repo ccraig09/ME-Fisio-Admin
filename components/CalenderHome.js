@@ -55,14 +55,14 @@ const CalenderHome = (props, { navigation }) => {
           let mark = {};
           await firebase
             .firestore()
-            .collection(`Notifications`)
+            .collection(`Data`)
             .doc("Mayra")
             .collection("Marked Dates")
             .doc("marked")
             .get()
             .then((doc) => {
               if (doc.exists) {
-                // console.log("Document data:", doc.data());
+                console.log("Document data:", Object.keys(doc.data()).length);
                 setMarks(doc.data());
               } else {
                 // doc.data() will be undefined in this case
@@ -80,8 +80,11 @@ const CalenderHome = (props, { navigation }) => {
           let mark = {};
           await firebase
             .firestore()
-            .collection(`Notifications`)
+            .collection(`Data`)
             .doc("Mayra")
+            .collection(`Slots`)
+            .doc("Mayra")
+            // .orderBy("Time", "desc")
             .get()
             .then((doc) => {
               if (doc.exists) {
@@ -135,7 +138,9 @@ const CalenderHome = (props, { navigation }) => {
       let mark = {};
       await firebase
         .firestore()
-        .collection(`Notifications`)
+        .collection(`Data`)
+        .doc("Mayra")
+        .collection(`Slots`)
         .doc("Mayra")
         .get()
         .then((doc) => {

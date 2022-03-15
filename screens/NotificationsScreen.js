@@ -83,7 +83,7 @@ const NotificationScreen = (props) => {
           let mark = {};
           await firebase
             .firestore()
-            .collection(`Notifications`)
+            .collection(`Data`)
             .doc("Mayra")
             .collection("Client Notifications")
             .get()
@@ -246,7 +246,7 @@ const NotificationScreen = (props) => {
       let mark = {};
       await firebase
         .firestore()
-        .collection(`Notifications`)
+        .collection(`Data`)
         .doc("Mayra")
         .collection("Client Notifications")
         .get()

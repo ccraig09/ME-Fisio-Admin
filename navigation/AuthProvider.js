@@ -7,7 +7,7 @@ export const AuthContext = createContext();
 export const AuthProvider = ({ children, navigation }) => {
   const [user, setUser] = useState(null);
   const db = firebase.firestore().collection("Members");
-  const dbN = firebase.firestore().collection("Notifications");
+  const dbN = firebase.firestore().collection("Data");
 
   const firebaseErrors = {
     "auth/app-deleted": "No se encontró la base de datos",
@@ -445,7 +445,7 @@ export const AuthProvider = ({ children, navigation }) => {
           try {
             console.log("uploading expo token", expoPushToken);
 
-            await dbN.doc("Mayra").collection("User Info").doc().set(
+            await dbN.doc("Mayra").set(
               {
                 expoPushToken,
 
