@@ -32,10 +32,10 @@ const CalenderHome = (props, { navigation }) => {
   const [friendNameText, setFriendNameText] = useState("loso cal test");
   const [selectedStartDate, setSelectedStartDate] =
     useState("1995-12-1T03:24:00");
-  const [selectedEndDate, setSelectedEndDate] = useState("2022-03-18T17:00:00");
+  const [selectedEndDate, setSelectedEndDate] = useState("2022-03-18T19:00:00");
 
   // const startDate = selectedStartDate ? selectedStartDate : "";
-  const startDate = "2022-03-18T16:00:00";
+  const startDate = "2022-03-18T18:26:00";
   const endDate = selectedEndDate ? selectedEndDate : "";
 
   useEffect(() => {
@@ -99,6 +99,7 @@ const CalenderHome = (props, { navigation }) => {
         endDate: moment(endDate).add(0, "m").toDate(),
         title: "Cita con Carlos Craig ",
         notes: "Masaje",
+        alarms: [{ relativeOffset: -60 }, { relativeOffset: -1440 }],
       });
       console.log("first", res);
       Alert.alert("Event Created!", res);
