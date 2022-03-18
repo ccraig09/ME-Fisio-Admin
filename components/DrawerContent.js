@@ -20,7 +20,7 @@ import firebase from "../components/firebase";
 
 const DrawerContent = (props) => {
   const [clientList, setClientList] = useState([]);
-  const [marks, setMarks] = useState();
+  const [marks, setMarks] = useState("");
 
   useFocusEffect(
     React.useCallback(() => {
@@ -113,21 +113,39 @@ const DrawerContent = (props) => {
           console.log(e);
         }
       };
+      // const fetchMarkedDates = async () => {
+      //   try {
+      //     const list = [];
+      //     let mark = {};
+      //     await firebase
+      //       .firestore()
+      //       .collection(`Notifications`)
+      //       .doc("Mayra")
+      //       // .collection("Marked Dates")
+      //       // .doc("marked")
+      //       .get()
+      //       .then((querySnapshot) => {
+      //         querySnapshot.forEach((doc) => {
+      //           console.log("first", doc.data().Object.keys());
+      //         });
+      //         // var date1 = mo
+      //       });
+      //   } catch (e) {
+      //     console.log(e);
+      //   }
+      // };
       const fetchMarkedDates = async () => {
         try {
           const list = [];
           let mark = {};
           await firebase
             .firestore()
-            .collection(`Data`)
+            .collection(`Notifications`)
             .doc("Mayra")
-            .collection("Marked Dates")
-            .doc("marked")
             .get()
             .then((doc) => {
               if (doc.exists) {
-                console.log("Document data:", Object.keys(doc.data()).length);
-                setMarks(Object.keys(doc.data()).length);
+                setMarks(doc.data());
               } else {
                 // doc.data() will be undefined in this case
                 console.log("No such document!");
@@ -173,7 +191,9 @@ const DrawerContent = (props) => {
               <FontAwesome5 name="user-friends" size={14} color="#fff" />
             </View>
             <View style={styles.section}>
-              <Text style={[styles.paragraph, styles.caption]}>{marks}</Text>
+              <Text style={[styles.paragraph, styles.caption]}>
+                {marks.TotalDates}
+              </Text>
               <Text style={styles.caption}>Citas</Text>
               <FontAwesome5 name="calendar-alt" size={14} color="#fff" />
             </View>

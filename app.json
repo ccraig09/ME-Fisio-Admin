@@ -15,11 +15,14 @@
     },
     "assetBundlePatterns": ["**/*"],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSRemindersUsageDescription": "To be able to create and update calendars"
+      }
     },
     "android": {
       "useNextNotificationsApi": true,
-
+      "permissions": ["READ_CALENDAR", "WRITE_CALENDAR"],
       "adaptiveIcon": {
         "foregroundImage": "./assets/newLogo.png",
         "backgroundColor": "#FFFFFF"

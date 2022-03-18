@@ -1,11 +1,13 @@
-import React, { Component, useState, useContext } from "react";
+import React, { Component, useState, useContext, useEffect } from "react";
 import {
   StyleSheet,
   Text,
   View,
   TouchableOpacity,
+  Button,
   StatusBar,
   SafeAreaView,
+  Alert,
   Dimensions,
   Image,
 } from "react-native";
@@ -16,6 +18,8 @@ import { AuthContext } from "../navigation/AuthProvider";
 import firebase from "../components/firebase";
 import { useFocusEffect } from "@react-navigation/native";
 import { Appbar, Drawer } from "react-native-paper";
+import * as Calendar from "expo-calendar";
+import moment from "moment";
 
 let screenHeight = Dimensions.get("window").height;
 const CalenderHome = (props, { navigation }) => {
@@ -25,23 +29,87 @@ const CalenderHome = (props, { navigation }) => {
   const [marks, setMarks] = useState();
   const [isLoading, setIsLoading] = useState();
   const [active, setActive] = useState("");
+  const [friendNameText, setFriendNameText] = useState("loso cal test");
+  const [selectedStartDate, setSelectedStartDate] =
+    useState("1995-12-1T03:24:00");
+  const [selectedEndDate, setSelectedEndDate] = useState("2022-03-18T17:00:00");
 
-  // const things = {
-  //   "2021-11-22": [{ name: "carlos", type: "Espalda" }],
-  //   "2021-11-24": [
-  //     { time: "9:00AM - 10:00AM", name: "Gabo", type: "Masaje" },
-  //     { time: "10:00AM - 11:00AM", name: "Carlos", type: "Masaje" },
-  //     { time: "11:00AM - 12:00AM", name: "Jeff", type: "Rehabilitacion" },
-  //   ],
-  //   "2021-11-25": [
-  //     { time: "8:00AM - 9:00AM", name: "Kiki", type: "Rehabilitacion" },
-  //   ],
-  //   "2021-11-26": [],
-  //   "2021-11-27": [
-  //     { time: "10:00AM - 11:00AM", name: "Diego", type: "Masaje" },
-  //   ],
-  // };
+  // const startDate = selectedStartDate ? selectedStartDate : "";
+  const startDate = "2022-03-18T16:00:00";
+  const endDate = selectedEndDate ? selectedEndDate : "";
 
+  useEffect(() => {
+    (async () => {
+      const { status } = await Calendar.requestCalendarPermissionsAsync();
+      if (status === "granted") {
+        const calendars = await Calendar.getCalendarsAsync(
+          Calendar.EntityTypes.EVENT
+        );
+        // console.log("Here are all your calendars:");
+        // console.log({ calendars });
+      }
+    })();
+  }, []);
+
+  async function getDefaultCalendarSource() {
+    const defaultCalendar = await Calendar.getDefaultCalendarAsync();
+    console.log(defaultCalendar);
+    return defaultCalendar.id;
+    // const calendars = await Calendar.getCalendarsAsync();
+    // const defaultCalendars = calendars.filter(
+    //   (each) => each.source.name === "iCloud" // or 'iCloud', 'Yahoo'
+    // );
+    // return defaultCalendars[0].source;
+    //   const calendars = await Calendar.getCalendarsAsync(
+    //     Calendar.EntityTypes.EVENT
+    //   );
+    //   const defaultCalendars = calendars.filter(
+    //     (each) => each.source.name === "Default"
+    //   );
+    //   return defaultCalendars.length
+    //     ? defaultCalendars[0].source
+    //     : calendars[0].source;
+  }
+
+  async function createCalendar() {
+    const defaultCalendarSource =
+      Platform.OS === "ios"
+        ? await getDefaultCalendarSource()
+        : { isLocalAccount: true, name: "Expo Calendar" };
+    // const newCalendarID = await Calendar.createCalendarAsync({
+    //   title: "Citas",
+    //   color: "blue",
+    //   entityType: Calendar.EntityTypes.EVENT,
+    //   sourceId: defaultCalendarSource.id,
+    //   source: defaultCalendarSource,
+    //   name: "internalCalendarName",
+    //   ownerAccount: "personal",
+    //   accessLevel: Calendar.CalendarAccessLevel.OWNER,
+    // });
+    console.log(`Your new calendar ID is: ${defaultCalendarSource}`);
+    return defaultCalendarSource;
+  }
+
+  const addNewEvent = async () => {
+    try {
+      const calendarId = await createCalendar();
+
+      const res = await Calendar.createEventAsync(calendarId, {
+        startDate: moment(startDate).add(0, "m").toDate(),
+        endDate: moment(endDate).add(0, "m").toDate(),
+        title: "Cita con Carlos Craig ",
+        notes: "Masaje",
+      });
+      console.log("first", res);
+      Alert.alert("Event Created!", res);
+    } catch (e) {
+      console.log(e);
+    }
+  };
+  const deleteEvent = async () => {
+    Calendar.deleteEventAsync("4722E166-2703-48CE-90C6-67B14A13B1DC");
+    Alert.alert("Event Deleted!");
+  };
   useFocusEffect(
     React.useCallback(() => {
       setIsLoading(true);
@@ -62,7 +130,7 @@ const CalenderHome = (props, { navigation }) => {
             .get()
             .then((doc) => {
               if (doc.exists) {
-                console.log("Document data:", Object.keys(doc.data()).length);
+                // console.log("Document data:", Object.keys(doc.data()).length);
                 setMarks(doc.data());
               } else {
                 // doc.data() will be undefined in this case
@@ -120,7 +188,6 @@ const CalenderHome = (props, { navigation }) => {
                 });
               });
             });
-          // console.log(list);
           setUserInfo(list);
         } catch (e) {
           console.log(e);
@@ -152,38 +219,64 @@ const CalenderHome = (props, { navigation }) => {
             console.log("No such document!");
           }
         });
-      // .then((querySnapshot) => {
-      //   querySnapshot.forEach((doc) => {
-      //     console.log("doc data loaded", doc.data());
-      //     // const { userDataJson } = doc.data();
-
-      //     // const keyss = Object.keys(doc.data().userDataJson);
-      //     // console.log("i got the keys", keyss);
-      //     // list.push(doc.id);
-
-      //     // list.forEach((day) => {
-      //     //   mark[day] = [
-      //     //     {
-      //     //       time: "9:00AM - 10:00AM",
-      //     //       name: "carlos",
-      //     //       type: "Rehabilitacion",
-      //     //     },
-      //     //   ];
-      //     // });
-
-      //     // list.push({
-      //     //   date: doc.id,
-      //     //   Data: userDataJson,
-      //     // });
-      //   });
-      //   // console.log("listing", mark);
-      //   setReserves(doc.data());
-      // });
+    } catch (e) {
+      console.log(e);
+    }
+  };
+  const fetchMembers = async () => {
+    try {
+      const list = [];
+      await firebase
+        .firestore()
+        .collection("Members")
+        .get()
+        .then((querySnapshot) => {
+          querySnapshot.forEach((doc) => {
+            const { FirstName, LastName, Age, Cell } = doc.data();
+            list.push({
+              key: doc.id,
+              Name: FirstName,
+              Last: LastName,
+              Cell: Cell,
+              Age: Age,
+            });
+          });
+        });
+      setUserInfo(list);
+    } catch (e) {
+      console.log(e);
+    }
+  };
+  const fetchMarkedDates = async () => {
+    try {
+      const list = [];
+      let mark = {};
+      await firebase
+        .firestore()
+        .collection(`Data`)
+        .doc("Mayra")
+        .collection("Marked Dates")
+        .doc("marked")
+        .get()
+        .then((doc) => {
+          if (doc.exists) {
+            console.log("Document data:", Object.keys(doc.data()).length);
+            setMarks(doc.data());
+          } else {
+            // doc.data() will be undefined in this case
+            console.log("No such document!");
+          }
+        });
     } catch (e) {
       console.log(e);
     }
   };
 
+  const refreshHandler = async () => {
+    fetchMarkedDates();
+    refreshSlots();
+    fetchMembers();
+  };
   const onDayPress = (day) => {
     const time = day.timestamp + 10 * 24 * 60 * 60 * 1000;
     dateStr(time);
@@ -255,7 +348,7 @@ const CalenderHome = (props, { navigation }) => {
           icon="refresh"
           color={Colors.primary}
           onPress={() => {
-            props.drawerAction();
+            refreshHandler();
           }}
         />
         {/* <Appbar.Content
@@ -275,6 +368,9 @@ const CalenderHome = (props, { navigation }) => {
           }} */}
         {/* /> */}
       </Appbar.Header>
+      <Button title="Create a new calendar" onPress={createCalendar} />
+      <Button title="Add a new calendar" onPress={addNewEvent} />
+      <Button title="Delete Event" onPress={deleteEvent} />
 
       <Agenda
         onVisibleMonthsChange={(months) => {

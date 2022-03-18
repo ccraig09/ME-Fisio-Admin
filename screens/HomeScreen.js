@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   StatusBar,
   SafeAreaView,
+  Button,
   Dimensions,
 } from "react-native";
 // import styles from '../../components/commonstyle'
@@ -42,128 +43,6 @@ const HomeScreen = ({ navigation }) => {
 
   const [selected, setSelected] = useState();
 
-  // const onDayPress = (day) => {
-  //   alert(day);
-  //   setSelected(day.dateString);
-  //   navigation.navigate("Slot", { bookingDate: day });
-  // };
-  useFocusEffect(
-    React.useCallback(() => {
-      // const fetchCoaches = async () => {
-      //   try {
-      //     const list = [];
-      //     await firebase
-      //       .firestore()
-      //       .collection("Coaches")
-      //       .get()
-      //       .then((querySnapshot) => {
-      //         querySnapshot.forEach((doc) => {
-      //           const {
-      //             FirstName,
-      //             LastName,
-      //             userImg,
-      //             email,
-      //             Phone,
-      //             createdAt,
-      //             expoPushToken,
-      //             country,
-      //             userId,
-      //           } = doc.data();
-      //           list.push({
-      //             key: doc.id,
-      //             FirstName: FirstName,
-      //             LastName: LastName,
-      //             userImg: userImg,
-      //             email: email,
-      //             Phone: Phone,
-      //             country: country,
-      //             createdAt: createdAt,
-      //             expoPushToken,
-      //             userId: userId,
-      //           });
-      //         });
-      //       });
-      //     setCoachList(list);
-      //   } catch (e) {
-      //     console.log(e);
-      //   }
-      // };
-      const fetchSlots = async () => {
-        try {
-          const list = [];
-          let data;
-          let mark = {};
-          await firebase
-            .firestore()
-            .collection(`Notifications`)
-            .doc("Mayra")
-            .get()
-            .then((doc) => {
-              if (doc.exists) {
-                // console.log("Document data:", doc.data());
-
-                setReserves(doc.data());
-              } else {
-                // doc.data() will be undefined in this case
-                console.log("No such document!");
-              }
-            });
-        } catch (e) {
-          console.log(e);
-        }
-      };
-      const fetchNotifications = async () => {
-        try {
-          const list = [];
-          await firebase
-            .firestore()
-            .collection("Notifications")
-            .where("isRead", "==", false)
-            .get()
-            .then((querySnapshot) => {
-              querySnapshot.forEach((doc) => {
-                const {
-                  Title,
-                  Cell,
-                  timestamp,
-                  userId,
-                  Goals,
-                  Plan,
-                  extraInfo,
-                  Time,
-                  Status,
-                  startDate,
-                  Suggestion,
-                  isRead,
-                } = doc.data();
-                list.push({
-                  key: doc.id,
-                  Title: Title,
-                  Cell: Cell,
-                  timestamp: timestamp.toDate().toDateString(),
-                  userId: userId,
-                  Goals: Goals,
-                  Plan: Plan,
-                  extraInfo: extraInfo,
-                  Time: Time,
-                  Status: Status,
-                  startDate: startDate,
-                  Suggestion: Suggestion,
-                  isRead: isRead,
-                  sort: timestamp,
-                });
-              });
-            });
-          console.log(list);
-          // setNotificationList(list.length);
-        } catch (e) {
-          console.log(e);
-        }
-      };
-      // fetchMemberDetails();
-      // fetchCoaches();
-    }, [])
-  );
   useEffect(() => {
     Notifications.cancelAllScheduledNotificationsAsync();
     // dailyNotification();
@@ -242,13 +121,13 @@ const HomeScreen = ({ navigation }) => {
   }, []);
 
   return (
-    // <SafeAreaView style={styles.container}>
-    <CalenderHome
-      drawerAction={() => {
-        navigation.openDrawer();
-      }}
-    />
-    // </SafeAreaView>
+    <SafeAreaView style={styles.container}>
+      <CalenderHome
+        drawerAction={() => {
+          navigation.openDrawer();
+        }}
+      />
+    </SafeAreaView>
   );
 };
 
