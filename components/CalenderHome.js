@@ -32,10 +32,10 @@ const CalenderHome = (props, { navigation }) => {
   const [friendNameText, setFriendNameText] = useState("loso cal test");
   const [selectedStartDate, setSelectedStartDate] =
     useState("1995-12-1T03:24:00");
-  const [selectedEndDate, setSelectedEndDate] = useState("2022-03-18T19:00:00");
+  const [selectedEndDate, setSelectedEndDate] = useState("2022-03-18T20:00:00");
 
   // const startDate = selectedStartDate ? selectedStartDate : "";
-  const startDate = "2022-03-18T18:26:00";
+  const startDate = "2022-03-18T19:47:00";
   const endDate = selectedEndDate ? selectedEndDate : "";
 
   useEffect(() => {
@@ -76,18 +76,22 @@ const CalenderHome = (props, { navigation }) => {
       Platform.OS === "ios"
         ? await getDefaultCalendarSource()
         : { isLocalAccount: true, name: "Expo Calendar" };
-    // const newCalendarID = await Calendar.createCalendarAsync({
-    //   title: "Citas",
-    //   color: "blue",
-    //   entityType: Calendar.EntityTypes.EVENT,
-    //   sourceId: defaultCalendarSource.id,
-    //   source: defaultCalendarSource,
-    //   name: "internalCalendarName",
-    //   ownerAccount: "personal",
-    //   accessLevel: Calendar.CalendarAccessLevel.OWNER,
-    // });
-    console.log(`Your new calendar ID is: ${defaultCalendarSource}`);
-    return defaultCalendarSource;
+
+    const newCalendarID = await Calendar.createCalendarAsync({
+      title: "Expo Calendar",
+      color: "blue",
+      entityType: Calendar.EntityTypes.EVENT,
+      sourceId: defaultCalendarSource.id,
+      source: defaultCalendarSource,
+      name: "internalCalendarName",
+      ownerAccount: "personal",
+      accessLevel: Calendar.CalendarAccessLevel.OWNER,
+    });
+    console.log(newCalendarID);
+
+    // console.log(`Your new calendar ID is: ${defaultCalendarSource}`);
+    // return defaultCalendarSource;
+    return newCalendarID;
   }
 
   const addNewEvent = async () => {
