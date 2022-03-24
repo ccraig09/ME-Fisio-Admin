@@ -8,6 +8,7 @@ export default class Animbutton extends Component {
       status: false,
     };
   }
+
   _onPress() {
     this.props._onPress(!this.state.status);
     this.setState({ status: !this.state.status });
@@ -46,7 +47,10 @@ export default class Animbutton extends Component {
   }
   render() {
     return (
-      <TouchableWithoutFeedback onPress={() => this._onPress()}>
+      <TouchableWithoutFeedback
+        onPress={() => this._onPress()}
+        disabled={this.props.taken === true}
+      >
         <Animatable.View
           ref="view"
           style={{
@@ -55,14 +59,22 @@ export default class Animbutton extends Component {
             paddingBottom: 10,
             paddingRight: 20,
             paddingLeft: 20,
-            backgroundColor: this.state.status ? this.props.onColor : "#bdbdbd",
+            backgroundColor: this.props.taken
+              ? "red"
+              : this.state.status
+              ? this.props.onColor
+              : "#bdbdbd",
             borderRadius: 20,
             alignItems: "center",
           }}
         >
           <Text
             style={{
-              color: this.state.status ? "white" : "#696969",
+              color: this.props.taken
+                ? "white"
+                : this.state.status
+                ? "white"
+                : "#696969",
               fontWeight: "bold",
             }}
           >

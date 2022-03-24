@@ -541,6 +541,15 @@ const ClientDetailsScreen = ({ route, navigation }) => {
           />
           <Button
             color={Colors.primary}
+            title={"Cita"}
+            onPress={() => {
+              navigation.navigate("Booking", {
+                userInfo: selectedClient,
+              });
+            }}
+          />
+          <Button
+            color={Colors.primary}
             title={"Exportar PDF"}
             onPress={() => {
               navigation.navigate("PDF", {

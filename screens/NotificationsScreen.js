@@ -1,4 +1,4 @@
-import React, { Component, useState, useContext } from "react";
+import React, { Component, useEffect, useState, useContext } from "react";
 import {
   StyleSheet,
   Text,
@@ -14,6 +14,8 @@ import firebase from "../components/firebase";
 import { useFocusEffect } from "@react-navigation/native";
 import { ButtonGroup } from "react-native-elements";
 import Colors from "../constants/Colors";
+import * as Calendar from "expo-calendar";
+import moment from "moment";
 
 const NotificationScreen = (props) => {
   const { user, readUpdate, accept, notificationReceipt } =
@@ -28,59 +30,57 @@ const NotificationScreen = (props) => {
 
   useFocusEffect(
     React.useCallback(() => {
-      const fetchHistory = async () => {
-        try {
-          const list = [];
-          await firebase
-            .firestore()
-            .collection("ClientNotificationHistory")
-            .get()
-            .then((querySnapshot) => {
-              querySnapshot.forEach((doc) => {
-                const {
-                  title,
-                  subtitle,
-                  timestamp,
-                  userId,
-                  fName,
-                  lName,
-                  points,
-                  Type,
-                } = doc.data();
-                list.push({
-                  key: doc.id,
-                  Title: title,
-                  subtitle: subtitle,
-                  timestamp: timestamp.toDate().toDateString(),
-                  userId: userId,
-                  isRead: true,
-                  fName: fName,
-                  lName: lName,
-                  points: points,
-                  sort: timestamp,
-                  Type: Type,
-                });
-              });
-            });
-          setCuponesNotificationList(
-            list
-              .sort((a, b) => (a.sort < b.sort ? 1 : -1))
-              .filter((data) => data.Type == "Cupones")
-          );
-          setHistoryList(
-            list
-              .sort((a, b) => (a.sort < b.sort ? 1 : -1))
-              .filter((data) => data.Type !== "Cupones")
-          );
-        } catch (e) {
-          console.log(e);
-        }
-      };
+      // const fetchHistory = async () => {
+      //   try {
+      //     const list = [];
+      //     await firebase
+      //       .firestore()
+      //       .collection("ClientNotificationHistory")
+      //       .get()
+      //       .then((querySnapshot) => {
+      //         querySnapshot.forEach((doc) => {
+      //           const {
+      //             title,
+      //             subtitle,
+      //             timestamp,
+      //             userId,
+      //             fName,
+      //             lName,
+      //             points,
+      //             Type,
+      //           } = doc.data();
+      //           list.push({
+      //             key: doc.id,
+      //             Title: title,
+      //             subtitle: subtitle,
+      //             timestamp: timestamp.toDate().toDateString(),
+      //             userId: userId,
+      //             isRead: true,
+      //             fName: fName,
+      //             lName: lName,
+      //             points: points,
+      //             sort: timestamp,
+      //             Type: Type,
+      //           });
+      //         });
+      //       });
+      //     setCuponesNotificationList(
+      //       list
+      //         .sort((a, b) => (a.sort < b.sort ? 1 : -1))
+      //         .filter((data) => data.Type == "Cupones")
+      //     );
+      //     setHistoryList(
+      //       list
+      //         .sort((a, b) => (a.sort < b.sort ? 1 : -1))
+      //         .filter((data) => data.Type !== "Cupones")
+      //     );
+      //   } catch (e) {
+      //     console.log(e);
+      //   }
+      // };
       const fetchSlots = async () => {
         try {
           const list = [];
-          let data;
-          let mark = {};
           await firebase
             .firestore()
             .collection(`Data`)
@@ -98,6 +98,8 @@ const NotificationScreen = (props) => {
                   Plan,
                   Date,
                   Time,
+                  endTime,
+                  startTime,
                   Status,
                   Type,
                   Last,
@@ -115,6 +117,8 @@ const NotificationScreen = (props) => {
                   Plan: Plan,
                   Date: Date,
                   Time: Time,
+                  startTime: startTime,
+                  endtime: endTime,
                   Last: Last,
                   Status: Status,
                   Type: Type,
@@ -132,113 +136,113 @@ const NotificationScreen = (props) => {
           console.log(e);
         }
       };
-      const fetchNotifications = async () => {
-        try {
-          const list = [];
-          await firebase
-            .firestore()
-            .collection("Notifications")
-            .get()
-            .then((querySnapshot) => {
-              querySnapshot.forEach((doc) => {
-                const {
-                  Title,
-                  Cell,
-                  timestamp,
-                  userId,
-                  Goals,
-                  Plan,
-                  extraInfo,
-                  Time,
-                  Status,
-                  startDate,
+      // const fetchNotifications = async () => {
+      //   try {
+      //     const list = [];
+      //     await firebase
+      //       .firestore()
+      //       .collection("Notifications")
+      //       .get()
+      //       .then((querySnapshot) => {
+      //         querySnapshot.forEach((doc) => {
+      //           const {
+      //             Title,
+      //             Cell,
+      //             timestamp,
+      //             userId,
+      //             Goals,
+      //             Plan,
+      //             extraInfo,
+      //             Time,
+      //             Status,
+      //             startDate,
 
-                  Suggestion,
-                  isRead,
-                  userInfo,
-                } = doc.data();
-                list.push({
-                  key: doc.id,
-                  Title: Title,
-                  Cell: Cell,
-                  timestamp: timestamp.toDate().toDateString(),
-                  userId: userId,
-                  Goals: Goals,
-                  Plan: Plan,
-                  extraInfo: extraInfo,
-                  Time: Time,
+      //             Suggestion,
+      //             isRead,
+      //             userInfo,
+      //           } = doc.data();
+      //           list.push({
+      //             key: doc.id,
+      //             Title: Title,
+      //             Cell: Cell,
+      //             timestamp: timestamp.toDate().toDateString(),
+      //             userId: userId,
+      //             Goals: Goals,
+      //             Plan: Plan,
+      //             extraInfo: extraInfo,
+      //             Time: Time,
 
-                  Status: Status,
-                  startDate: startDate,
-                  Suggestion: Suggestion,
-                  isRead: isRead,
-                  userInfo: userInfo,
-                  sort: timestamp,
-                });
-              });
-            });
+      //             Status: Status,
+      //             startDate: startDate,
+      //             Suggestion: Suggestion,
+      //             isRead: isRead,
+      //             userInfo: userInfo,
+      //             sort: timestamp,
+      //           });
+      //         });
+      //       });
 
-          setNotificationList(list.sort((a, b) => (a.sort < b.sort ? 1 : -1)));
-        } catch (e) {
-          console.log(e);
-        }
-      };
+      //     setNotificationList(list.sort((a, b) => (a.sort < b.sort ? 1 : -1)));
+      //   } catch (e) {
+      //     console.log(e);
+      //   }
+      // };
       fetchSlots();
       // fetchHistory();
       // fetchNotifications();
     }, [])
   );
-  const fetchNotifications = async () => {
-    try {
-      const list = [];
-      await firebase
-        .firestore()
-        .collection("Notifications")
-        .get()
-        .then((querySnapshot) => {
-          querySnapshot.forEach((doc) => {
-            const {
-              Title,
-              Cell,
-              timestamp,
-              userId,
-              Goals,
-              Plan,
-              extraInfo,
-              Time,
-              Type,
-              Status,
-              startDate,
-              Suggestion,
-              isRead,
-              userInfo,
-            } = doc.data();
-            list.push({
-              key: doc.id,
-              Title: Title,
-              Cell: Cell,
-              timestamp: timestamp.toDate().toDateString(),
-              userId: userId,
-              Goals: Goals,
-              Plan: Plan,
-              extraInfo: extraInfo,
-              Time: Time,
-              Type: Type,
-              Status: Status,
-              startDate: startDate,
-              Suggestion: Suggestion,
-              isRead: isRead,
-              userInfo: userInfo,
-              sort: timestamp,
-            });
-          });
-        });
+  // const fetchNotifications = async () => {
+  //   try {
+  //     const list = [];
+  //     await firebase
+  //       .firestore()
+  //       .collection("Notifications")
+  //       .get()
+  //       .then((querySnapshot) => {
+  //         querySnapshot.forEach((doc) => {
+  //           const {
+  //             Title,
+  //             Cell,
+  //             timestamp,
+  //             userId,
+  //             Goals,
+  //             Plan,
+  //             extraInfo,
+  //             Time,
+  //             Type,
+  //             Status,
+  //             startDate,
+  //             Suggestion,
+  //             isRead,
+  //             userInfo,
+  //           } = doc.data();
+  //           list.push({
+  //             key: doc.id,
+  //             Title: Title,
+  //             Cell: Cell,
+  //             timestamp: timestamp.toDate().toDateString(),
+  //             userId: userId,
+  //             Goals: Goals,
+  //             Plan: Plan,
+  //             extraInfo: extraInfo,
+  //             Time: Time,
+  //             Type: Type,
+  //             Status: Status,
+  //             startDate: startDate,
+  //             Suggestion: Suggestion,
+  //             isRead: isRead,
+  //             userInfo: userInfo,
+  //             sort: timestamp,
+  //           });
+  //         });
+  //       });
 
-      setNotificationList(list.sort((a, b) => (a.sort < b.sort ? 1 : -1)));
-    } catch (e) {
-      console.log(e);
-    }
-  };
+  //     setNotificationList(list.sort((a, b) => (a.sort < b.sort ? 1 : -1)));
+  //   } catch (e) {
+  //     console.log(e);
+  //   }
+  // };
   const fetchSlots = async () => {
     try {
       const list = [];
@@ -261,6 +265,8 @@ const NotificationScreen = (props) => {
               Plan,
               Date,
               Time,
+              startTime,
+              endTime,
               Status,
               Type,
               Last,
@@ -278,6 +284,8 @@ const NotificationScreen = (props) => {
               Plan: Plan,
               Date: Date,
               Time: Time,
+              startTime: startTime,
+              endTime: endTime,
               Last: Last,
               Status: Status,
               Type: Type,
@@ -294,6 +302,87 @@ const NotificationScreen = (props) => {
     } catch (e) {
       console.log(e);
     }
+  };
+
+  useEffect(() => {
+    (async () => {
+      const { status } = await Calendar.requestCalendarPermissionsAsync();
+      if (status === "granted") {
+        const calendars = await Calendar.getCalendarsAsync(
+          Calendar.EntityTypes.EVENT
+        );
+        // console.log("Here are all your calendars:");
+        // console.log({ calendars });
+      }
+    })();
+  }, []);
+  async function getDefaultCalendarSource() {
+    const defaultCalendar = await Calendar.getDefaultCalendarAsync();
+    console.log(defaultCalendar);
+    return defaultCalendar.id;
+    // const calendars = await Calendar.getCalendarsAsync();
+    // const defaultCalendars = calendars.filter(
+    //   (each) => each.source.name === "iCloud" // or 'iCloud', 'Yahoo'
+    // );
+    // return defaultCalendars[0].source;
+    //   const calendars = await Calendar.getCalendarsAsync(
+    //     Calendar.EntityTypes.EVENT
+    //   );
+    //   const defaultCalendars = calendars.filter(
+    //     (each) => each.source.name === "Default"
+    //   );
+    //   return defaultCalendars.length
+    //     ? defaultCalendars[0].source
+    //     : calendars[0].source;
+  }
+
+  async function createCalendar() {
+    const defaultCalendarSource =
+      Platform.OS === "ios"
+        ? await getDefaultCalendarSource()
+        : { isLocalAccount: true, name: "Expo Calendar" };
+
+    const newCalendarID = await Calendar.createCalendarAsync({
+      title: "Expo Calendar",
+      color: "blue",
+      entityType: Calendar.EntityTypes.EVENT,
+      sourceId: defaultCalendarSource.id,
+      source: defaultCalendarSource,
+      name: "internalCalendarName",
+      ownerAccount: "personal",
+      accessLevel: Calendar.CalendarAccessLevel.OWNER,
+    });
+    console.log(newCalendarID);
+
+    // console.log(`Your new calendar ID is: ${defaultCalendarSource}`);
+    // return defaultCalendarSource;
+    return newCalendarID;
+  }
+
+  const addNewEvent = async (start, end, first, last, type, date) => {
+    const startTime = date.concat("T", start);
+    const endTime = date.concat("T", end);
+    console.log("first start", startTime);
+    console.log("first end", endTime);
+    try {
+      const calendarId = await createCalendar();
+
+      const res = await Calendar.createEventAsync(calendarId, {
+        startDate: moment(startTime).add(0, "m").toDate(),
+        endDate: moment(endTime).add(0, "m").toDate(),
+        title: `Cita con ${first} ${last} `,
+        notes: `${type}`,
+        alarms: [{ relativeOffset: -1440 }, { relativeOffset: -60 }],
+      });
+      console.log("first", res);
+      Alert.alert("Event Created!", res);
+    } catch (e) {
+      console.log(e);
+    }
+  };
+  const deleteEvent = async () => {
+    Calendar.deleteEventAsync("4722E166-2703-48CE-90C6-67B14A13B1DC");
+    Alert.alert("Event Deleted!");
   };
 
   const readUpdateHandler = async (key, boolean) => {
@@ -475,6 +564,19 @@ const NotificationScreen = (props) => {
                               "Tu solicitud cambio a pendiente, verifica que todo este correcto."
                             ),
                         },
+                    {
+                      text: "Add to Calendar",
+                      onPress: () => {
+                        addNewEvent(
+                          Notification.startTime,
+                          Notification.endTime,
+                          Notification.Name,
+                          Notification.Last,
+                          Notification.Type,
+                          Notification.Date
+                        );
+                      },
+                    },
                   ]);
                 } else {
                   null;

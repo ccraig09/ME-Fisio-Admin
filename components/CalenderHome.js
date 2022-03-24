@@ -35,7 +35,7 @@ const CalenderHome = (props, { navigation }) => {
   const [selectedEndDate, setSelectedEndDate] = useState("2022-03-18T20:00:00");
 
   // const startDate = selectedStartDate ? selectedStartDate : "";
-  const startDate = "2022-03-18T19:47:00";
+  const startDate = "2022-03-18T19:49:00";
   const endDate = selectedEndDate ? selectedEndDate : "";
 
   useEffect(() => {
@@ -103,7 +103,7 @@ const CalenderHome = (props, { navigation }) => {
         endDate: moment(endDate).add(0, "m").toDate(),
         title: "Cita con Carlos Craig ",
         notes: "Masaje",
-        alarms: [{ relativeOffset: -60 }, { relativeOffset: -1440 }],
+        alarms: [{ relativeOffset: -1440 }, { relativeOffset: -60 }],
       });
       console.log("first", res);
       Alert.alert("Event Created!", res);

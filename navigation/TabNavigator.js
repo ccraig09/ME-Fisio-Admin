@@ -9,6 +9,7 @@ import Pdf from "../screens/PdfScreen";
 import Booking from "../screens/BookingScreen";
 import Slot from "../screens/SlotScreen";
 import Colors from "../constants/Colors";
+import Review from "../screens/ReviewScreen";
 
 import Icon from "react-native-vector-icons/Ionicons";
 import ClientListScreen from "../screens/ClientListScreen";
@@ -119,6 +120,27 @@ const ClientStack = () => (
         title: "Exportar",
         headerShown: true,
       })}
+    />
+    <Stack.Screen
+      name="Booking"
+      component={Booking}
+      options={({ navigation }) => ({
+        title: "Elegir Fecha",
+        headerShown: true,
+      })}
+    />
+    <Stack.Screen
+      name="Slot"
+      component={Slot}
+      options={({ navigation }) => ({
+        title: "Elegir Horario",
+        headerShown: true,
+      })}
+    />
+    <Stack.Screen
+      name="Review"
+      component={Review}
+      options={{ headerShown: false, animation: "fade" }}
     />
   </Stack.Navigator>
 );
