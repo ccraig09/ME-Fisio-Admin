@@ -17,7 +17,7 @@ import { Avatar } from "react-native-elements";
 import { AuthContext } from "../navigation/AuthProvider";
 import firebase from "../components/firebase";
 import { useFocusEffect } from "@react-navigation/native";
-import { Appbar, Drawer } from "react-native-paper";
+import { Appbar } from "react-native-paper";
 import * as Calendar from "expo-calendar";
 import moment from "moment";
 
@@ -373,9 +373,6 @@ const CalenderHome = (props, { navigation }) => {
           }} */}
         {/* /> */}
       </Appbar.Header>
-      <Button title="Create a new calendar" onPress={createCalendar} />
-      <Button title="Add a new calendar" onPress={addNewEvent} />
-      <Button title="Delete Event" onPress={deleteEvent} />
 
       <Agenda
         onVisibleMonthsChange={(months) => {

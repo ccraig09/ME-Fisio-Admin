@@ -58,9 +58,11 @@ const AppStack = () => {
         }}
       />
       <Drawer.Screen
-        name="Notications"
+        name="Notificaciones"
         component={Notifications}
         options={{
+          headerShown: false,
+          headerTitle: "Notificaciones",
           drawerIcon: ({ color }) => (
             <Ionicons name="notifications-outline" size={22} color={color} />
           ),

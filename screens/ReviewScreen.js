@@ -10,28 +10,27 @@ import React from "react";
 import LottieView from "lottie-react-native";
 
 const ReviewScreen = ({ navigation }) => {
-  // useEffect(() => {
-  //   setTimeout(() => {
-  //     navigation.navigate("Home");
-  //   }, 3000);
-  // }, []);
-
   setTimeout(() => {
-    navigation.navigate("Home");
-  }, 4000);
+    navigation.navigate("Clients");
+  }, 3000);
   return (
-    <SafeAreaView style={{ flex: 1, justifyContent: "center" }}>
+    <SafeAreaView
+      style={{
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center",
+      }}
+    >
       <LottieView
-        source={require("../assets/lottie/81484-confirmation-spinner.json")}
+        // style={{
+        //   width: 400,
+        //   height: 400,
+        //   backgroundColor: "#eee",
+        // }}
+        source={require("../assets/lottie/93507-check.json")}
         autoPlay
         loop={false}
       />
-      {/* <Button
-        title="go back"
-        onPress={() => {
-          navigation.goBack();
-        }}
-      /> */}
     </SafeAreaView>
   );
 };

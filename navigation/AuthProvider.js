@@ -419,6 +419,140 @@ export const AuthProvider = ({ children, navigation }) => {
             console.log(e);
           }
         },
+        sendNotification: async (
+          userInfo,
+          bookingData,
+          bookParam,
+          helper,
+          type
+        ) => {
+          const time = bookingData.k.slot;
+          const date = bookParam.bookingDate.dateString;
+          const Name = userInfo.FirstName;
+          const Last = userInfo.LastName;
+          const Cell = userInfo.Cell;
+          const Age = userInfo.Age;
+          const userId = userInfo.userId;
+          const increment = firebase.firestore.FieldValue.increment(1);
+
+          try {
+            await firebase
+              .firestore()
+              .collection("Data")
+              .doc(`${helper}`)
+              .collection("Slots")
+              .doc(`${helper}`)
+              .update({
+                [date]: firebase.firestore.FieldValue.arrayUnion({
+                  Name: Name,
+                  Last: Last,
+                  Cell: Cell,
+                  Age: Age,
+                  userId: userId,
+                  Time: time,
+                  Type: type,
+                  read: false,
+                }),
+              });
+          } catch (e) {
+            alert(e);
+            console.log(e);
+          }
+          try {
+            await firebase
+              .firestore()
+              .collection("Data")
+              .doc(`${helper}`)
+              .collection("Marked Dates")
+              .doc("marked")
+              .set(
+                {
+                  [date]: { marked: true },
+                },
+                { merge: true }
+              );
+          } catch (e) {
+            alert(e);
+            console.log(e);
+          }
+          try {
+            await firebase
+              .firestore()
+              .collection("Notifications")
+              .doc(`${helper}`)
+
+              .set(
+                {
+                  TotalDates: increment,
+                },
+                { merge: true }
+              );
+          } catch (e) {
+            alert(e);
+            console.log(e);
+          }
+        },
+        createNotification: async (
+          userInfo,
+          bookingData,
+          bookParam,
+          helper,
+          type
+        ) => {
+          const time = bookingData.k.slot;
+          const startTime = bookingData.startTime;
+          const endTime = bookingData.endTime;
+          const date = bookParam.bookingDate.dateString;
+          const Name = userInfo.FirstName;
+          const Last = userInfo.LastName;
+          const Cell = userInfo.Cell;
+          const Age = userInfo.Age;
+          const userId = userInfo.userId;
+          console.log(Name, Last, Cell, Age, userId);
+
+          try {
+            await firebase
+              .firestore()
+              .collection("Data")
+              .doc(`${helper}`)
+              .collection("Client Notifications")
+              .doc()
+              .set({
+                Date: date,
+                Name: Name,
+                Last: Last,
+                Cell: Cell,
+                Age: Age,
+                userId: userId,
+                Time: time,
+                startTime,
+                endTime,
+                Type: type,
+                read: false,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+              });
+          } catch (e) {
+            alert(e);
+            console.log(e);
+          }
+          try {
+            await firebase
+              .firestore()
+              .collection("Notifications")
+              .doc(`${helper}`)
+              .collection("Marked Dates")
+              .doc("marked")
+              .set(
+                {
+                  [date]: { marked: true },
+                },
+                { merge: true }
+              );
+          } catch (e) {
+            alert(e);
+            console.log(e);
+          }
+        },
         readUpdate: async (key, boolean) => {
           try {
             // console.log("uploading expo token", expoPushToken);
@@ -459,6 +593,31 @@ export const AuthProvider = ({ children, navigation }) => {
             console.log(errorMes);
           }
         },
+        reserveSlot: async (bookingData, bookParam, user, slots, helper) => {
+          console.log("checking reserveSlot userid", user);
+          const status = bookingData.status;
+          const key = bookingData.k.slot;
+          const value = bookingData.slots;
+          const month = bookParam.bookingDate.month.toString();
+          const year = bookParam.bookingDate.year.toString();
+          const date = bookParam.bookingDate.dateString;
+
+          let userDataJson = {};
+          if (status) userDataJson[key] = user;
+          else userDataJson[key] = null;
+          try {
+            await firebase.firestore().collection(`${helper}`).doc(date).set(
+              {
+                userDataJson,
+              },
+              { merge: true }
+            );
+          } catch (e) {
+            alert(e);
+            console.log(e);
+          }
+        },
+
         deleteData: async (screen, id, header, pdfData, key) => {
           console.log("deleteing eval", screen, id, pdfData);
           try {

@@ -8,6 +8,7 @@ import {
   Alert,
   TouchableOpacity,
   StatusBar,
+  ScrollView,
 } from "react-native";
 import Animbutton from "../components/animbutton";
 import firebase from "../components/firebase";
@@ -166,7 +167,7 @@ const SlotScreen = ({ route, navigation }) => {
         text: "Si",
         style: "default",
         onPress: () => {
-          confirmHandler(bookingData, bookParam, user, slots, helper.helper);
+          confirmHandler(bookingData, bookParam, user, slots, helper);
         },
       },
     ]);
@@ -179,7 +180,7 @@ const SlotScreen = ({ route, navigation }) => {
     slots,
     helper
   ) => {
-    const toast = Toast.showLoading("Realizando Reservacion");
+    const toast = await Toast.showLoading("Realizando Reservacion");
 
     // console.log("noti data", user, bookParam, slots);
     await addNewEvent(
@@ -190,9 +191,9 @@ const SlotScreen = ({ route, navigation }) => {
       type,
       bookParam.bookingDate.dateString
     );
-    // await reserveSlot(bookingData, bookParam, user, slots, helper);
-    // await sendNotification(userInfo, bookingData, bookParam, helper, type);
-    // await createNotification(userInfo, bookingData, bookParam, helper, type);
+    await reserveSlot(bookingData, bookParam, userInfo.userId, slots, helper);
+    await sendNotification(userInfo, bookingData, bookParam, helper, type);
+    await createNotification(userInfo, bookingData, bookParam, helper, type);
     // triggerNotificationHandler(bookingData, bookParam);
     Toast.hide(toast);
 
@@ -200,8 +201,8 @@ const SlotScreen = ({ route, navigation }) => {
   };
   async function getDefaultCalendarSource() {
     const defaultCalendar = await Calendar.getDefaultCalendarAsync();
-    console.log(defaultCalendar);
-    return defaultCalendar.id;
+    console.log("default", defaultCalendar);
+    return defaultCalendar;
     // const calendars = await Calendar.getCalendarsAsync();
     // const defaultCalendars = calendars.filter(
     //   (each) => each.source.name === "iCloud" // or 'iCloud', 'Yahoo'
@@ -223,21 +224,26 @@ const SlotScreen = ({ route, navigation }) => {
         ? await getDefaultCalendarSource()
         : { isLocalAccount: true, name: "Expo Calendar" };
 
-    const newCalendarID = await Calendar.createCalendarAsync({
-      title: "Expo Calendar",
-      color: "blue",
-      entityType: Calendar.EntityTypes.EVENT,
-      sourceId: defaultCalendarSource.id,
-      source: defaultCalendarSource,
-      name: "internalCalendarName",
-      ownerAccount: "personal",
-      accessLevel: Calendar.CalendarAccessLevel.OWNER,
-    });
-    console.log(newCalendarID);
+    if (Platform.OS === "android") {
+      const newCalendarID = await Calendar.createCalendarAsync({
+        title: "Expo Calendar",
+        color: "blue",
+        entityType: Calendar.EntityTypes.EVENT,
+        sourceId: defaultCalendarSource.id,
+        source: defaultCalendarSource,
+        name: "internalCalendarName",
+        ownerAccount: "personal",
+        accessLevel: Calendar.CalendarAccessLevel.OWNER,
+      });
+      console.log(newCalendarID);
+      return newCalendarID;
+    }
 
     // console.log(`Your new calendar ID is: ${defaultCalendarSource}`);
     // return defaultCalendarSource;
-    return newCalendarID;
+    if (Platform.OS === "ios") {
+      return defaultCalendarSource.id;
+    }
   }
   const addNewEvent = async (start, end, first, last, type, date) => {
     const startTime = date.concat("T", start);
@@ -308,7 +314,7 @@ const SlotScreen = ({ route, navigation }) => {
   });
   // console.log("these them slots", slots);
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container}>
       <Text style={styles.title}>Tiempos disponible por {helper.helper} </Text>
       <Text style={styles.date}>{bookParam.bookingDate.dateString}</Text>
       {slotsarr}
@@ -320,7 +326,7 @@ const SlotScreen = ({ route, navigation }) => {
       >
         <Text style={styles.panelButtonTitle}>Confirmar</Text>
       </TouchableOpacity>
-    </View>
+    </ScrollView>
   );
 };
 const styles = StyleSheet.create({

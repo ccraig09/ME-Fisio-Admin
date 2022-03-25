@@ -12,14 +12,17 @@ import {
 import { AuthContext } from "../navigation/AuthProvider";
 import firebase from "../components/firebase";
 import { useFocusEffect } from "@react-navigation/native";
-import { ButtonGroup } from "react-native-elements";
 import Colors from "../constants/Colors";
 import * as Calendar from "expo-calendar";
 import moment from "moment";
+import { Appbar } from "react-native-paper";
+import { useNavigation } from "@react-navigation/native";
 
 const NotificationScreen = (props) => {
   const { user, readUpdate, accept, notificationReceipt } =
     useContext(AuthContext);
+  const navigation = useNavigation();
+
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [reserves, setReserves] = useState();
   const [isLoading, setIsLoading] = useState(false);
@@ -30,54 +33,6 @@ const NotificationScreen = (props) => {
 
   useFocusEffect(
     React.useCallback(() => {
-      // const fetchHistory = async () => {
-      //   try {
-      //     const list = [];
-      //     await firebase
-      //       .firestore()
-      //       .collection("ClientNotificationHistory")
-      //       .get()
-      //       .then((querySnapshot) => {
-      //         querySnapshot.forEach((doc) => {
-      //           const {
-      //             title,
-      //             subtitle,
-      //             timestamp,
-      //             userId,
-      //             fName,
-      //             lName,
-      //             points,
-      //             Type,
-      //           } = doc.data();
-      //           list.push({
-      //             key: doc.id,
-      //             Title: title,
-      //             subtitle: subtitle,
-      //             timestamp: timestamp.toDate().toDateString(),
-      //             userId: userId,
-      //             isRead: true,
-      //             fName: fName,
-      //             lName: lName,
-      //             points: points,
-      //             sort: timestamp,
-      //             Type: Type,
-      //           });
-      //         });
-      //       });
-      //     setCuponesNotificationList(
-      //       list
-      //         .sort((a, b) => (a.sort < b.sort ? 1 : -1))
-      //         .filter((data) => data.Type == "Cupones")
-      //     );
-      //     setHistoryList(
-      //       list
-      //         .sort((a, b) => (a.sort < b.sort ? 1 : -1))
-      //         .filter((data) => data.Type !== "Cupones")
-      //     );
-      //   } catch (e) {
-      //     console.log(e);
-      //   }
-      // };
       const fetchSlots = async () => {
         try {
           const list = [];
@@ -129,120 +84,20 @@ const NotificationScreen = (props) => {
                 });
               });
             });
-          console.log("list", list);
-          setNotificationList(list);
+          // console.log("list", list);
+          setNotificationList(list.sort((a, b) => (a.sort < b.sort ? 1 : -1)));
           // setNotificationList(list.sort((a, b) => (a.sort < b.sort ? 1 : -1)));
         } catch (e) {
           console.log(e);
         }
       };
-      // const fetchNotifications = async () => {
-      //   try {
-      //     const list = [];
-      //     await firebase
-      //       .firestore()
-      //       .collection("Notifications")
-      //       .get()
-      //       .then((querySnapshot) => {
-      //         querySnapshot.forEach((doc) => {
-      //           const {
-      //             Title,
-      //             Cell,
-      //             timestamp,
-      //             userId,
-      //             Goals,
-      //             Plan,
-      //             extraInfo,
-      //             Time,
-      //             Status,
-      //             startDate,
 
-      //             Suggestion,
-      //             isRead,
-      //             userInfo,
-      //           } = doc.data();
-      //           list.push({
-      //             key: doc.id,
-      //             Title: Title,
-      //             Cell: Cell,
-      //             timestamp: timestamp.toDate().toDateString(),
-      //             userId: userId,
-      //             Goals: Goals,
-      //             Plan: Plan,
-      //             extraInfo: extraInfo,
-      //             Time: Time,
-
-      //             Status: Status,
-      //             startDate: startDate,
-      //             Suggestion: Suggestion,
-      //             isRead: isRead,
-      //             userInfo: userInfo,
-      //             sort: timestamp,
-      //           });
-      //         });
-      //       });
-
-      //     setNotificationList(list.sort((a, b) => (a.sort < b.sort ? 1 : -1)));
-      //   } catch (e) {
-      //     console.log(e);
-      //   }
-      // };
       fetchSlots();
       // fetchHistory();
       // fetchNotifications();
     }, [])
   );
-  // const fetchNotifications = async () => {
-  //   try {
-  //     const list = [];
-  //     await firebase
-  //       .firestore()
-  //       .collection("Notifications")
-  //       .get()
-  //       .then((querySnapshot) => {
-  //         querySnapshot.forEach((doc) => {
-  //           const {
-  //             Title,
-  //             Cell,
-  //             timestamp,
-  //             userId,
-  //             Goals,
-  //             Plan,
-  //             extraInfo,
-  //             Time,
-  //             Type,
-  //             Status,
-  //             startDate,
-  //             Suggestion,
-  //             isRead,
-  //             userInfo,
-  //           } = doc.data();
-  //           list.push({
-  //             key: doc.id,
-  //             Title: Title,
-  //             Cell: Cell,
-  //             timestamp: timestamp.toDate().toDateString(),
-  //             userId: userId,
-  //             Goals: Goals,
-  //             Plan: Plan,
-  //             extraInfo: extraInfo,
-  //             Time: Time,
-  //             Type: Type,
-  //             Status: Status,
-  //             startDate: startDate,
-  //             Suggestion: Suggestion,
-  //             isRead: isRead,
-  //             userInfo: userInfo,
-  //             sort: timestamp,
-  //           });
-  //         });
-  //       });
 
-  //     setNotificationList(list.sort((a, b) => (a.sort < b.sort ? 1 : -1)));
-  //   } catch (e) {
-  //     console.log(e);
-  //   }
-  // };
   const fetchSlots = async () => {
     try {
       const list = [];
@@ -296,8 +151,8 @@ const NotificationScreen = (props) => {
             });
           });
         });
-      console.log("list", list);
-      setNotificationList(list);
+      // console.log("list", list);
+      setNotificationList(list.sort((a, b) => (a.sort < b.sort ? 1 : -1)));
       // setNotificationList(list.sort((a, b) => (a.sort < b.sort ? 1 : -1)));
     } catch (e) {
       console.log(e);
@@ -453,30 +308,36 @@ const NotificationScreen = (props) => {
 
   return (
     <SafeAreaView>
-      <ButtonGroup
-        buttons={["CLIENTES", "HISTORIA", "PREMIOS"]}
-        selectedIndex={selectedIndex}
-        onPress={(value) => {
-          console.log(value);
-          // console.log(notificationList);
-          setSelectedIndex(value);
+      <Appbar.Header
+        style={{
+          width: "100%",
+          justifyContent: "space-between",
+          backgroundColor: "white",
         }}
-        selectedButtonStyle={{ backgroundColor: Colors.primary }}
-        containerStyle={{ marginBottom: 20, borderRadius: 15 }}
-      />
+      >
+        <Appbar.Action
+          icon="arrow-left"
+          color={Colors.primary}
+          onPress={() => {
+            navigation.navigate("Inicio");
+          }}
+        />
+        <Appbar.Content
+          title="Notificaciones"
+          titleStyle={{
+            fontWeight: "bold",
+            fontSize: 25,
+            color: Colors.primary,
+          }}
+        />
+      </Appbar.Header>
       <FlatList
         onRefresh={() => {
           fetchSlots();
         }}
         refreshing={isLoading}
         style={styles.root}
-        data={
-          selectedIndex === 0
-            ? notificationList
-            : selectedIndex === 1
-            ? historyList
-            : cuponesNotificationList
-        }
+        data={notificationList}
         // extraData={this.state}
         ItemSeparatorComponent={() => {
           return <View style={styles.separator} />;
@@ -523,47 +384,6 @@ const NotificationScreen = (props) => {
                       onPress: () => console.log("Cancel Pressed"),
                       style: "cancel",
                     },
-                    !Notification.read
-                      ? {
-                          text: "Marcar como leido",
-                          //  "Marcar como no leido",
-                          onPress: () =>
-                            readUpdateHandler(Notification.key, true),
-                        }
-                      : {
-                          text: "Marcar como no leido",
-                          //  "Marcar como no leido",
-                          onPress: () =>
-                            readUpdateHandler(Notification.key, false),
-                        },
-
-                    Notification.Status === "Pendiente"
-                      ? {
-                          text: "Cambiar a Aceptado",
-                          onPress: () =>
-                            acceptHandler(
-                              Notification.key,
-                              "Aceptado",
-                              false,
-                              Notification.userInfo,
-                              Notification.Title,
-                              "Aprobado ☑️",
-                              "Tu solicitud ha sido aceptada"
-                            ),
-                        }
-                      : {
-                          text: "Cambiar a Pendiente",
-                          onPress: () =>
-                            acceptHandler(
-                              Notification.key,
-                              "Pendiente",
-                              false,
-                              Notification.userInfo,
-                              Notification.Title,
-                              "Ups!",
-                              "Tu solicitud cambio a pendiente, verifica que todo este correcto."
-                            ),
-                        },
                     {
                       text: "Add to Calendar",
                       onPress: () => {
@@ -577,6 +397,19 @@ const NotificationScreen = (props) => {
                         );
                       },
                     },
+                    !Notification.read
+                      ? {
+                          text: "Marcar como leido",
+                          //  "Marcar como no leido",
+                          onPress: () =>
+                            readUpdateHandler(Notification.key, true),
+                        }
+                      : {
+                          text: "Marcar como no leido",
+                          //  "Marcar como no leido",
+                          onPress: () =>
+                            readUpdateHandler(Notification.key, false),
+                        },
                   ]);
                 } else {
                   null;
