@@ -423,7 +423,7 @@ export const AuthProvider = ({ children, navigation }) => {
           // console.log(value);
           console.log(helper);
           const date = "2022-03-27";
-          const increment = firebase.firestore.FieldValue.increment(1);
+          const increment = firebase.firestore.FieldValue.increment(-1);
           const obj = {
             Name: value.Name,
             Last: value.Last,
@@ -447,6 +447,39 @@ export const AuthProvider = ({ children, navigation }) => {
               .update({
                 [date]: firebase.firestore.FieldValue.arrayRemove(obj),
               });
+          } catch (e) {
+            alert(e);
+            console.log(e);
+          }
+          try {
+            await firebase
+              .firestore()
+              .collection("Data")
+              .doc(`${helper}`)
+
+              .set(
+                {
+                  TotalDates: increment,
+                },
+                { merge: true }
+              );
+          } catch (e) {
+            alert(e);
+            console.log(e);
+          }
+          try {
+            await firebase
+              .firestore()
+              .collection(`${helper}`)
+              .doc(date)
+              .set(
+                {
+                  userDataJson: {
+                    [value.Time]: firebase.firestore.FieldValue.delete(),
+                  },
+                },
+                { merge: true }
+              );
           } catch (e) {
             alert(e);
             console.log(e);

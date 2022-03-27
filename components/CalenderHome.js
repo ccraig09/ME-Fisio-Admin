@@ -26,12 +26,13 @@ import { useFocusEffect } from "@react-navigation/native";
 import { Appbar } from "react-native-paper";
 import * as Calendar from "expo-calendar";
 import ActionSheet, { SheetManager } from "react-native-actions-sheet";
+import Toast from "react-native-tiny-toast";
 
 const actionSheetRef = createRef();
 
 let screenHeight = Dimensions.get("window").height;
 const CalenderHome = (props, { navigation }) => {
-  const { deleteEventFB } = useContext(AuthContext);
+  const { deleteEventFB, deleteButton } = useContext(AuthContext);
   const [selected, setSelected] = useState();
   const [userInfo, setUserInfo] = useState();
   const [data, setData] = useState();
@@ -52,13 +53,16 @@ const CalenderHome = (props, { navigation }) => {
   }, []);
 
   const deleteEventHandler = async (value) => {
-    // console.log(value);
+    const toast = await Toast.showLoading("Borrando Evento");
+
     await deleteEventFB(value, "Mayra");
-    //lower citas
     //delete from homescreen
     //marked dates?
-    //button slot
     await deleteEvent(value.calRes);
+    Toast.hide(toast);
+    SheetManager.hide("actionSheetRef");
+
+    refreshHandler();
   };
 
   const deleteEvent = async (id) => {
@@ -202,6 +206,7 @@ const CalenderHome = (props, { navigation }) => {
       console.log(e);
     }
   };
+
   const fetchMarkedDates = async () => {
     try {
       const list = [];
@@ -358,15 +363,15 @@ const CalenderHome = (props, { navigation }) => {
           refreshSlots();
         }}
         renderItem={(item, firstItemInDay) => {
-          // if (!Array.isArray(item)) {
-          //   return (
-          //     <View style={styles.itemView}>
-          //       <View>
-          //         <Text>nada</Text>
-          //       </View>
-          //     </View>
-          //   );
-          // }
+          if (item) {
+            return (
+              <View style={styles.itemView}>
+                <View>
+                  <Text>nada</Text>
+                </View>
+              </View>
+            );
+          }
 
           return (
             <View style={styles.itemView}>
