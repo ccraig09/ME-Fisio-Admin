@@ -167,32 +167,18 @@ const SlotScreen = ({ route, navigation }) => {
         text: "Si",
         style: "default",
         onPress: () => {
-          confirmHandler(bookingData, bookParam, user, slots, helper);
+          confirmHandler(bookingData, bookParam, user, slots);
         },
       },
     ]);
   };
 
-  const confirmHandler = async (
-    bookingData,
-    bookParam,
-    user,
-    slots,
-    helper
-  ) => {
+  const confirmHandler = async (bookingData, bookParam, user, slots) => {
     const toast = await Toast.showLoading("Realizando Reservacion");
 
     // console.log("noti data", user, bookParam, slots);
-    await addNewEvent(
-      bookingData.startTime,
-      bookingData.endTime,
-      userInfo.FirstName,
-      userInfo.LastName,
-      type,
-      bookParam.bookingDate.dateString
-    );
+    await addNewEvent(bookingData, userInfo, type, bookParam);
     await reserveSlot(bookingData, bookParam, userInfo.userId, slots, helper);
-    await sendNotification(userInfo, bookingData, bookParam, helper, type);
     await createNotification(userInfo, bookingData, bookParam, helper, type);
     // triggerNotificationHandler(bookingData, bookParam);
     Toast.hide(toast);
@@ -245,9 +231,10 @@ const SlotScreen = ({ route, navigation }) => {
       return defaultCalendarSource.id;
     }
   }
-  const addNewEvent = async (start, end, first, last, type, date) => {
-    const startTime = date.concat("T", start);
-    const endTime = date.concat("T", end);
+  const addNewEvent = async (bookingData, userInfo, type, bookParam) => {
+    const date = bookParam.bookingDate.dateString;
+    const startTime = date.concat("T", bookingData.startTime);
+    const endTime = date.concat("T", bookingData.endTime);
     console.log("first start", startTime);
     console.log("first end", endTime);
     try {
@@ -256,11 +243,20 @@ const SlotScreen = ({ route, navigation }) => {
       const res = await Calendar.createEventAsync(calendarId, {
         startDate: moment(startTime).add(0, "m").toDate(),
         endDate: moment(endTime).add(0, "m").toDate(),
-        title: `Cita con ${first} ${last} `,
+        title: `Cita con ${userInfo.FirstName} ${userInfo.LastName} `,
         notes: `${type}`,
         alarms: [{ relativeOffset: -1440 }, { relativeOffset: -60 }],
       });
       console.log("first", res);
+      await sendNotification(
+        userInfo,
+        bookingData,
+        bookParam,
+        helper,
+        type,
+        res
+      );
+
       // Alert.alert("Event Created!", " ");
     } catch (e) {
       console.log(e);

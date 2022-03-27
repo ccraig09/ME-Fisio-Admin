@@ -1,4 +1,10 @@
-import React, { Component, useState, useContext, useEffect } from "react";
+import React, {
+  Component,
+  useState,
+  useContext,
+  useEffect,
+  createRef,
+} from "react";
 import {
   StyleSheet,
   Text,
@@ -19,24 +25,20 @@ import firebase from "../components/firebase";
 import { useFocusEffect } from "@react-navigation/native";
 import { Appbar } from "react-native-paper";
 import * as Calendar from "expo-calendar";
-import moment from "moment";
+import ActionSheet, { SheetManager } from "react-native-actions-sheet";
+
+const actionSheetRef = createRef();
 
 let screenHeight = Dimensions.get("window").height;
 const CalenderHome = (props, { navigation }) => {
+  const { deleteEventFB } = useContext(AuthContext);
   const [selected, setSelected] = useState();
   const [userInfo, setUserInfo] = useState();
+  const [data, setData] = useState();
   const [reserves, setReserves] = useState();
   const [marks, setMarks] = useState();
   const [isLoading, setIsLoading] = useState();
   const [active, setActive] = useState("");
-  const [friendNameText, setFriendNameText] = useState("loso cal test");
-  const [selectedStartDate, setSelectedStartDate] =
-    useState("1995-12-1T03:24:00");
-  const [selectedEndDate, setSelectedEndDate] = useState("2022-03-18T20:00:00");
-
-  // const startDate = selectedStartDate ? selectedStartDate : "";
-  const startDate = "2022-03-18T19:49:00";
-  const endDate = selectedEndDate ? selectedEndDate : "";
 
   useEffect(() => {
     (async () => {
@@ -45,75 +47,23 @@ const CalenderHome = (props, { navigation }) => {
         const calendars = await Calendar.getCalendarsAsync(
           Calendar.EntityTypes.EVENT
         );
-        // console.log("Here are all your calendars:");
-        // console.log({ calendars });
       }
     })();
   }, []);
 
-  async function getDefaultCalendarSource() {
-    const defaultCalendar = await Calendar.getDefaultCalendarAsync();
-    console.log(defaultCalendar);
-    return defaultCalendar.id;
-    // const calendars = await Calendar.getCalendarsAsync();
-    // const defaultCalendars = calendars.filter(
-    //   (each) => each.source.name === "iCloud" // or 'iCloud', 'Yahoo'
-    // );
-    // return defaultCalendars[0].source;
-    //   const calendars = await Calendar.getCalendarsAsync(
-    //     Calendar.EntityTypes.EVENT
-    //   );
-    //   const defaultCalendars = calendars.filter(
-    //     (each) => each.source.name === "Default"
-    //   );
-    //   return defaultCalendars.length
-    //     ? defaultCalendars[0].source
-    //     : calendars[0].source;
-  }
-
-  async function createCalendar() {
-    const defaultCalendarSource =
-      Platform.OS === "ios"
-        ? await getDefaultCalendarSource()
-        : { isLocalAccount: true, name: "Expo Calendar" };
-
-    const newCalendarID = await Calendar.createCalendarAsync({
-      title: "Expo Calendar",
-      color: "blue",
-      entityType: Calendar.EntityTypes.EVENT,
-      sourceId: defaultCalendarSource.id,
-      source: defaultCalendarSource,
-      name: "internalCalendarName",
-      ownerAccount: "personal",
-      accessLevel: Calendar.CalendarAccessLevel.OWNER,
-    });
-    console.log(newCalendarID);
-
-    // console.log(`Your new calendar ID is: ${defaultCalendarSource}`);
-    // return defaultCalendarSource;
-    return newCalendarID;
-  }
-
-  const addNewEvent = async () => {
-    try {
-      const calendarId = await createCalendar();
-
-      const res = await Calendar.createEventAsync(calendarId, {
-        startDate: moment(startDate).add(0, "m").toDate(),
-        endDate: moment(endDate).add(0, "m").toDate(),
-        title: "Cita con Carlos Craig ",
-        notes: "Masaje",
-        alarms: [{ relativeOffset: -1440 }, { relativeOffset: -60 }],
-      });
-      console.log("first", res);
-      Alert.alert("Event Created!", res);
-    } catch (e) {
-      console.log(e);
-    }
+  const deleteEventHandler = async (value) => {
+    // console.log(value);
+    await deleteEventFB(value, "Mayra");
+    //lower citas
+    //delete from homescreen
+    //marked dates?
+    //button slot
+    await deleteEvent(value.calRes);
   };
-  const deleteEvent = async () => {
-    Calendar.deleteEventAsync("4722E166-2703-48CE-90C6-67B14A13B1DC");
-    Alert.alert("Event Deleted!");
+
+  const deleteEvent = async (id) => {
+    Calendar.deleteEventAsync(id);
+    Alert.alert("Evento Borrado!");
   };
   useFocusEffect(
     React.useCallback(() => {
@@ -299,14 +249,48 @@ const CalenderHome = (props, { navigation }) => {
   return (
     <SafeAreaView
       style={{
-        // marginTop: 25,
         flex: 1,
-        // backgroundColor: Colors.primaryColor,
         padding: 5,
         paddingTop: 8,
-        // alignItems: "center",
       }}
     >
+      <ActionSheet
+        onBeforeShow={(data) => {
+          setData(data);
+        }}
+        id="actionSheetRef"
+        bounceOnOpen={true}
+        elevation={15}
+      >
+        <View style={{ alignItems: "center" }}>
+          <Text style={styles.panelTitle}>Opciones</Text>
+          {/* <Text style={styles.panelSubtitle}>Eligir Foto de Perfil</Text> */}
+        </View>
+
+        <TouchableOpacity
+          style={styles.panelButton}
+          // onPress={takePhotoFromCamera}
+        >
+          <Text style={styles.panelButtonTitle}>Ver Perfil</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.panelButton}
+          onPress={() => {
+            deleteEventHandler(data.value);
+          }}
+        >
+          <Text style={styles.panelButtonTitle}>Borrar Evento</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.panelButton}
+          onPress={() => {
+            SheetManager.hide("actionSheetRef");
+          }}
+        >
+          <Text style={styles.panelButtonTitle}>Cancelar</Text>
+        </TouchableOpacity>
+      </ActionSheet>
       <Appbar.Header
         style={{
           width: "100%",
@@ -326,25 +310,7 @@ const CalenderHome = (props, { navigation }) => {
             props.drawerAction();
           }}
         />
-        {/* <Drawer.Section title="Some title">
-          <Drawer.Item
-            label="First Item"
-            active={active === "first"}
-            onPress={() => setActive("first")}
-          />
-          <Drawer.Item
-            label="Second Item"
-            active={active === "second"}
-            onPress={() => setActive("second")}
-          />
-        </Drawer.Section> */}
-        {/* <Appbar.Action
-          icon="arrow-left"
-          color={Colors.primaryColor}
-          onPress={() => navigation.goBack()}
-        /> */}
-        {/* <Avatar.Text size={24} label="XD" /> */}
-        {/* <View style={{ alignContent: "center", alignItems: "center" }}> */}
+
         <Image
           style={styles.tinyLogo}
           source={require("../assets/mayraLogo.png")}
@@ -356,22 +322,6 @@ const CalenderHome = (props, { navigation }) => {
             refreshHandler();
           }}
         />
-        {/* <Appbar.Content
-          // title="ME Fisio"
-          titleStyle={{
-            fontWeight: "bold",
-            fontSize: 25,
-            color: "white",
-          }}
-        /> */}
-        {/* <Appbar.Action icon="dots-vertical" onPress={null} color={"white"} /> */}
-        {/* title="ME Fisio"
-          titleStyle={{
-            fontWeight: "bold",
-            fontSize: 25,
-            color: "white",
-          }} */}
-        {/* /> */}
       </Appbar.Header>
 
       <Agenda
@@ -385,22 +335,7 @@ const CalenderHome = (props, { navigation }) => {
         onDayPress={(day) => {
           onDayPress(day);
         }}
-        items={
-          reserves
-          // "2021-11-22": [{ name: "carlos", type: "Espalda" }],
-          // "2021-11-24": [
-          //   { time: "9:00AM - 10:00AM", name: "Gabo", type: "Masaje" },
-          //   { time: "10:00AM - 11:00AM", name: "Carlos", type: "Masaje" },
-          //   { time: "11:00AM - 12:00AM", name: "Jeff", type: "Rehabilitacion" },
-          // ],
-          // "2021-11-25": [
-          //   { time: "8:00AM - 9:00AM", name: "Kiki", type: "Rehabilitacion" },
-          // ],
-          // "2021-11-26": [],
-          // "2021-11-27": [
-          //   { time: "10:00AM - 11:00AM", name: "Diego", type: "Masaje" },
-          // ],
-        }
+        items={reserves}
         style={styles.calendar}
         // hideExtraDays
         // markedDates={{ [selected]: { selected: true } }}
@@ -423,11 +358,23 @@ const CalenderHome = (props, { navigation }) => {
           refreshSlots();
         }}
         renderItem={(item, firstItemInDay) => {
+          // if (!Array.isArray(item)) {
+          //   return (
+          //     <View style={styles.itemView}>
+          //       <View>
+          //         <Text>nada</Text>
+          //       </View>
+          //     </View>
+          //   );
+          // }
+
           return (
             <View style={styles.itemView}>
               <View>
                 <TouchableOpacity
-                  onPress={() => alert(item.Name, item.Time, item.Type)}
+                  onPress={() => {
+                    SheetManager.show("actionSheetRef", { value: item });
+                  }}
                 >
                   <Text style={styles.itemTime}>{item.Time}</Text>
                   <Text style={styles.itemName}>
@@ -530,6 +477,30 @@ const styles = StyleSheet.create({
     height: 50,
     alignSelf: "center",
     alignContent: "center",
+  },
+  panelTitle: {
+    fontSize: 27,
+    height: 35,
+  },
+  panelSubtitle: {
+    fontSize: 14,
+    color: "gray",
+    height: 30,
+    marginBottom: 10,
+  },
+  panelButton: {
+    padding: 13,
+    borderRadius: 10,
+    backgroundColor: Colors.primary,
+    alignItems: "center",
+    alignSelf: "center",
+    marginVertical: 7,
+    width: 200,
+  },
+  panelButtonTitle: {
+    fontSize: 17,
+    fontWeight: "bold",
+    color: "white",
   },
 });
 

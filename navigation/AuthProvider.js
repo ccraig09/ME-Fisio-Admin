@@ -419,12 +419,46 @@ export const AuthProvider = ({ children, navigation }) => {
             console.log(e);
           }
         },
+        deleteEventFB: async (value, helper) => {
+          // console.log(value);
+          console.log(helper);
+          const date = "2022-03-27";
+          const increment = firebase.firestore.FieldValue.increment(1);
+          const obj = {
+            Name: value.Name,
+            Last: value.Last,
+            Cell: value.Cell,
+            Age: value.Age,
+            userId: value.userId,
+            calRes: value.calRes,
+            Time: value.Time,
+            Type: value.Type,
+            read: value.read,
+            Date: value.Date,
+          };
+
+          try {
+            await firebase
+              .firestore()
+              .collection("Data")
+              .doc(`${helper}`)
+              .collection("Slots")
+              .doc(`${helper}`)
+              .update({
+                [date]: firebase.firestore.FieldValue.arrayRemove(obj),
+              });
+          } catch (e) {
+            alert(e);
+            console.log(e);
+          }
+        },
         sendNotification: async (
           userInfo,
           bookingData,
           bookParam,
           helper,
-          type
+          type,
+          res
         ) => {
           const time = bookingData.k.slot;
           const date = bookParam.bookingDate.dateString;
@@ -449,7 +483,9 @@ export const AuthProvider = ({ children, navigation }) => {
                   Cell: Cell,
                   Age: Age,
                   userId: userId,
+                  calRes: res,
                   Time: time,
+                  Date: date,
                   Type: type,
                   read: false,
                 }),
@@ -478,7 +514,7 @@ export const AuthProvider = ({ children, navigation }) => {
           try {
             await firebase
               .firestore()
-              .collection("Notifications")
+              .collection("Data")
               .doc(`${helper}`)
 
               .set(

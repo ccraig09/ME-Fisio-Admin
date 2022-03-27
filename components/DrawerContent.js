@@ -140,7 +140,7 @@ const DrawerContent = (props) => {
           let mark = {};
           await firebase
             .firestore()
-            .collection(`Notifications`)
+            .collection(`Data`)
             .doc("Mayra")
             .get()
             .then((doc) => {
