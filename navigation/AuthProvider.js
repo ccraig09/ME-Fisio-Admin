@@ -422,7 +422,7 @@ export const AuthProvider = ({ children, navigation }) => {
         deleteEventFB: async (value, helper) => {
           // console.log(value);
           console.log(helper);
-          const date = "2022-03-27";
+          const date = value.Date;
           const increment = firebase.firestore.FieldValue.increment(-1);
           const obj = {
             Name: value.Name,

@@ -37,7 +37,9 @@ const CalenderHome = (props, { navigation }) => {
   const [userInfo, setUserInfo] = useState();
   const [data, setData] = useState();
   const [reserves, setReserves] = useState();
+  const [dateKeys, setDateKeys] = useState();
   const [marks, setMarks] = useState();
+  const [actualMarks, setActualMarks] = useState();
   const [isLoading, setIsLoading] = useState();
   const [active, setActive] = useState("");
 
@@ -51,6 +53,19 @@ const CalenderHome = (props, { navigation }) => {
       }
     })();
   }, []);
+
+  const deletePrompt = async (value) => {
+    Alert.alert("Borrar Evento?", "Quiere borrar este evento?", [
+      { text: "No", style: "default" },
+      {
+        text: "Si",
+        style: "destructive",
+        onPress: async () => {
+          deleteEventHandler(value);
+        },
+      },
+    ]);
+  };
 
   const deleteEventHandler = async (value) => {
     const toast = await Toast.showLoading("Borrando Evento");
@@ -72,6 +87,8 @@ const CalenderHome = (props, { navigation }) => {
   useFocusEffect(
     React.useCallback(() => {
       setIsLoading(true);
+      let playDates;
+      let playMarks;
       // const month = bookParam.bookingDate.month.toString();
       // const date = bookParam.bookingDate.dateString;
       // const year = bookParam.bookingDate.year.toString();
@@ -89,7 +106,8 @@ const CalenderHome = (props, { navigation }) => {
             .get()
             .then((doc) => {
               if (doc.exists) {
-                // console.log("Document data:", Object.keys(doc.data()).length);
+                // console.log("Document data:", doc.data());
+                playMarks = doc.data();
                 setMarks(doc.data());
               } else {
                 // doc.data() will be undefined in this case
@@ -102,8 +120,8 @@ const CalenderHome = (props, { navigation }) => {
       };
       const fetchSlots = async () => {
         try {
-          const list = [];
-          let data;
+          let list = [];
+          let data = [];
           let mark = {};
           await firebase
             .firestore()
@@ -116,8 +134,37 @@ const CalenderHome = (props, { navigation }) => {
             .then((doc) => {
               if (doc.exists) {
                 // console.log("Document data:", doc.data());
+                list = doc.data();
+                data.push(doc.data());
+                var dateKeys = Object.keys(data[0]).filter(function (el) {
+                  return data[0][el].length > 0;
+                });
+                // console.log(dateKeys);
+                const filtered = Object.fromEntries(
+                  Object.entries(list).filter(
+                    ([key, value]) => value.length > 0
+                  )
+                );
 
-                setReserves(doc.data());
+                // console.log(filtered);
+                playDates = dateKeys;
+                // const markedObject = Object.fromEntries(
+                //   Object.entries(playMarks).map(([key, value]) => [
+                //     key,
+                //     { ...value, marked: playDates.includes(key) },
+                //   ])
+                // );
+
+                // console.log(markedObject);
+
+                Object.keys(playMarks)
+                  .filter((date) => !dateKeys.includes(date))
+                  .map((date) => (playMarks[date].marked = false));
+                console.log("play objects", playMarks);
+
+                setActualMarks(playMarks);
+                setReserves(filtered);
+                // setReserves(doc.data());
               } else {
                 // doc.data() will be undefined in this case
                 console.log("No such document!");
@@ -152,15 +199,23 @@ const CalenderHome = (props, { navigation }) => {
           console.log(e);
         }
       };
+      console.log(marks);
+      // console.log("playmarks", playMarks);
+      // console.log(dateKeys);
+
       fetchMarkedDates();
       fetchSlots();
       fetchMembers();
     }, [])
   );
 
+  // useEffect(() => {
+
+  // }, []);
+
   const refreshSlots = async () => {
     try {
-      const list = [];
+      let list = [];
       let mark = {};
       await firebase
         .firestore()
@@ -172,7 +227,11 @@ const CalenderHome = (props, { navigation }) => {
         .then((doc) => {
           if (doc.exists) {
             console.log("Document data:", doc.data());
-            setReserves(doc.data());
+            list = doc.data();
+            const filtered = Object.fromEntries(
+              Object.entries(list).filter(([key, value]) => value.length > 0)
+            );
+            setReserves(filtered);
           } else {
             // doc.data() will be undefined in this case
             console.log("No such document!");
@@ -220,7 +279,7 @@ const CalenderHome = (props, { navigation }) => {
         .get()
         .then((doc) => {
           if (doc.exists) {
-            console.log("Document data:", Object.keys(doc.data()).length);
+            // console.log("Document data:", Object.keys(doc.data()).length);
             setMarks(doc.data());
           } else {
             // doc.data() will be undefined in this case
@@ -233,9 +292,9 @@ const CalenderHome = (props, { navigation }) => {
   };
 
   const refreshHandler = async () => {
-    fetchMarkedDates();
-    refreshSlots();
-    fetchMembers();
+    await fetchMarkedDates();
+    await refreshSlots();
+    await fetchMembers();
   };
   const onDayPress = (day) => {
     const time = day.timestamp + 10 * 24 * 60 * 60 * 1000;
@@ -282,7 +341,7 @@ const CalenderHome = (props, { navigation }) => {
         <TouchableOpacity
           style={styles.panelButton}
           onPress={() => {
-            deleteEventHandler(data.value);
+            deletePrompt(data.value);
           }}
         >
           <Text style={styles.panelButtonTitle}>Borrar Evento</Text>
@@ -346,7 +405,7 @@ const CalenderHome = (props, { navigation }) => {
         // markedDates={{ [selected]: { selected: true } }}
 
         markedDates={
-          marks
+          actualMarks
           // // "2021-11-16": { selected: true, marked: true },
           // "2022-03-02": { marked: true },
           // "2022-03-03": { marked: true },
@@ -363,16 +422,6 @@ const CalenderHome = (props, { navigation }) => {
           refreshSlots();
         }}
         renderItem={(item, firstItemInDay) => {
-          if (item) {
-            return (
-              <View style={styles.itemView}>
-                <View>
-                  <Text>nada</Text>
-                </View>
-              </View>
-            );
-          }
-
           return (
             <View style={styles.itemView}>
               <View>
