@@ -532,14 +532,35 @@ const ClientDetailsScreen = ({ route, navigation }) => {
       <Text style={styles.userInfoTitle}>{selectedClient.email}</Text>
       <ScrollView showsVerticalScrollIndicator={false}>
         <View style={styles.userBtnWrapper}>
-          <Button
-            color={Colors.primary}
-            title={"Enviar notificacion"}
+          <Text
+            style={styles.btnWrapperText}
             onPress={() => {
               setNotify(true);
             }}
-          />
-          <Button
+          >
+            Enviar notificacion
+          </Text>
+          <Text
+            style={styles.btnWrapperText}
+            onPress={() => {
+              navigation.navigate("Booking", {
+                userInfo: selectedClient,
+              });
+            }}
+          >
+            Cita
+          </Text>
+          <Text
+            style={styles.btnWrapperText}
+            onPress={() => {
+              navigation.navigate("PDF", {
+                id: id,
+              });
+            }}
+          >
+            Exportar PDF
+          </Text>
+          {/* <Button
             color={Colors.primary}
             title={"Cita"}
             onPress={() => {
@@ -556,7 +577,7 @@ const ClientDetailsScreen = ({ route, navigation }) => {
                 id: id,
               });
             }}
-          />
+          /> */}
         </View>
         {notify && (
           <View>
@@ -834,6 +855,11 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     width: "100%",
     marginVertical: 10,
+  },
+  btnWrapperText: {
+    margin: 5,
+    color: Colors.primary,
+    fontSize: 18,
   },
   userBtn: {
     borderColor: "#2e64e5",

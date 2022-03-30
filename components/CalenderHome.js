@@ -87,7 +87,6 @@ const CalenderHome = (props, { navigation }) => {
   useFocusEffect(
     React.useCallback(() => {
       setIsLoading(true);
-      let playDates;
       let playMarks;
       // const month = bookParam.bookingDate.month.toString();
       // const date = bookParam.bookingDate.dateString;
@@ -108,7 +107,7 @@ const CalenderHome = (props, { navigation }) => {
               if (doc.exists) {
                 // console.log("Document data:", doc.data());
                 playMarks = doc.data();
-                setMarks(doc.data());
+                // setMarks(doc.data());
               } else {
                 // doc.data() will be undefined in this case
                 console.log("No such document!");
@@ -139,34 +138,23 @@ const CalenderHome = (props, { navigation }) => {
                 var dateKeys = Object.keys(data[0]).filter(function (el) {
                   return data[0][el].length > 0;
                 });
-                // console.log(dateKeys);
                 const filtered = Object.fromEntries(
                   Object.entries(list).filter(
                     ([key, value]) => value.length > 0
                   )
                 );
 
-                // console.log(filtered);
-                playDates = dateKeys;
-                // const markedObject = Object.fromEntries(
-                //   Object.entries(playMarks).map(([key, value]) => [
-                //     key,
-                //     { ...value, marked: playDates.includes(key) },
-                //   ])
-                // );
-
-                // console.log(markedObject);
-
                 Object.keys(playMarks)
                   .filter((date) => !dateKeys.includes(date))
                   .map((date) => (playMarks[date].marked = false));
                 console.log("play objects", playMarks);
 
+                setDateKeys(dateKeys);
+                setMarks(playMarks);
+
                 setActualMarks(playMarks);
                 setReserves(filtered);
-                // setReserves(doc.data());
               } else {
-                // doc.data() will be undefined in this case
                 console.log("No such document!");
               }
             });
@@ -216,6 +204,7 @@ const CalenderHome = (props, { navigation }) => {
   const refreshSlots = async () => {
     try {
       let list = [];
+      let data = [];
       let mark = {};
       await firebase
         .firestore()
@@ -226,11 +215,21 @@ const CalenderHome = (props, { navigation }) => {
         .get()
         .then((doc) => {
           if (doc.exists) {
-            console.log("Document data:", doc.data());
+            // console.log("Document data:", doc.data());
             list = doc.data();
+            data.push(doc.data());
             const filtered = Object.fromEntries(
               Object.entries(list).filter(([key, value]) => value.length > 0)
             );
+            var dateKeys = Object.keys(data[0]).filter(function (el) {
+              return data[0][el].length > 0;
+            });
+            console.log("marks", marks);
+            Object.keys(marks)
+              .filter((date) => !dateKeys.includes(date))
+              .map((date) => (marks[date].marked = false));
+            // console.log("play objects", playMarks);
+            setActualMarks(marks);
             setReserves(filtered);
           } else {
             // doc.data() will be undefined in this case
@@ -292,7 +291,7 @@ const CalenderHome = (props, { navigation }) => {
   };
 
   const refreshHandler = async () => {
-    await fetchMarkedDates();
+    // await fetchMarkedDates();
     await refreshSlots();
     await fetchMembers();
   };
@@ -333,7 +332,10 @@ const CalenderHome = (props, { navigation }) => {
 
         <TouchableOpacity
           style={styles.panelButton}
-          // onPress={takePhotoFromCamera}
+          onPress={() => {
+            props.clientNav(data.value.userId);
+            SheetManager.hide("actionSheetRef");
+          }}
         >
           <Text style={styles.panelButtonTitle}>Ver Perfil</Text>
         </TouchableOpacity>

@@ -126,6 +126,15 @@ const HomeScreen = ({ navigation }) => {
         drawerAction={() => {
           navigation.openDrawer();
         }}
+        clientNav={(res) => {
+          navigation.navigate("Clientes", {
+            screen: "Client",
+            params: { id: res },
+          });
+          // , {
+          //   id: props,
+          // });
+        }}
       />
     </SafeAreaView>
   );
