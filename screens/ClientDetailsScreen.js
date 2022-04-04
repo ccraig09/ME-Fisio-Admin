@@ -47,8 +47,10 @@ const ClientDetailsScreen = ({ route, navigation }) => {
   const [userInfo, setUserInfo] = useState([]);
   const [visible, setIsVisible] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [imageLoading, setImageLoading] = useState(false);
   const [transferred, setTransferred] = useState();
-  const [URLs, setURLs] = useState();
+  const [URLs, setURLs] = useState([]);
+  const [progress, setProgress] = useState([]);
 
   const [notify, setNotify] = useState(false);
   const [selectedClient, setSelectedClient] = useState(false);
@@ -130,12 +132,13 @@ const ClientDetailsScreen = ({ route, navigation }) => {
             .get()
             .then((querySnapshot) => {
               querySnapshot.forEach((doc) => {
-                const { title, ownerId, note, timeStamp } = doc.data();
+                const { title, ownerId, note, timeStamp, url } = doc.data();
                 list.push({
                   key: doc.id,
                   title: title,
                   note: note,
                   ownerId: ownerId,
+                  url: url,
                   timeStamp: timeStamp,
                 });
               });
@@ -151,24 +154,39 @@ const ClientDetailsScreen = ({ route, navigation }) => {
   );
 
   const ImageRow = () => {
-    return images.map((image, index) => {
-      return (
-        <TouchableOpacity onPress={() => setIsVisible(true)}>
-          <Image
+    if (images.length > 0) {
+      return images.map((image, index) => {
+        return (
+          <TouchableOpacity
             key={index.toString()}
-            style={{
-              height: 200,
-              width: 200,
-              marginHorizontal: 5,
-              borderRadius: 2,
-            }}
-            source={{
-              uri: image,
-            }}
-          />
-        </TouchableOpacity>
-      );
-    });
+            onPress={() => setIsVisible(true)}
+          >
+            <Image
+              style={{
+                height: 200,
+                width: 200,
+                marginHorizontal: 5,
+                borderRadius: 2,
+              }}
+              onLoadStart={() => setImageLoading(true)}
+              onLoadEnd={() => setImageLoading(false)}
+              // onProgress={(progress) =>
+              //   setProgress(
+              //     Math.round(
+              //       progress.nativeEvent.loaded / progress.nativeEvent.total
+              //     ) * 100
+              //   )
+              // }
+              source={{
+                uri: image,
+              }}
+            />
+          </TouchableOpacity>
+        );
+      });
+    } else {
+      return <View></View>;
+    }
   };
   const takePhotoFromCamera = async () => {
     let result = await ImagePicker.launchCameraAsync({
@@ -200,24 +218,35 @@ const ClientDetailsScreen = ({ route, navigation }) => {
       actionSheetRef.current?.hide();
     }
   };
+  const finishHandler = (urls) => {
+    console.log("finishing");
+    addNote(title, text, id, urls);
+    setText("");
+    setTitle("");
+    setImages([]);
+    Alert.alert("Nota Guardado!", "La nota se ha guardado exitosamente!");
+    setTimeout(() => {
+      setNoteModal(false);
+      setEditMode(false);
+      setURLs([]);
+      fetchMemberNotes();
+    }, 1000);
+  };
   const submitChanges = async () => {
-    let imageUrl = await uploadImage();
-    console.log(imageUrl);
-    if (imageUrl == null && userInfo.userImg) {
-      imageUrl = userInfo.userImg;
+    if (images.length > 0) {
+      let res = await uploadImage();
+      console.log("this is res", res);
+      finishHandler(res);
     }
-    if (imageUrl == null && userInfo.userImg == null) {
-      imageUrl = null;
+    if (images.length === 0) {
+      let url = null;
+      console.log("more this is 0");
+      finishHandler(url);
     }
   };
 
   const uploadImage = async () => {
-    if (images.length === 0) {
-      console.log("image is null");
-      return null;
-    }
-    images.map(async (file, index) => {
-      console.log("loop");
+    const promises = images.map(async (file, index) => {
       const response = await fetch(file);
       const blob = await response.blob();
 
@@ -240,10 +269,9 @@ const ClientDetailsScreen = ({ route, navigation }) => {
           `${taskSnapshot.bytesTransferred} transferred out of ${taskSnapshot.totalBytes}`
         );
         setTransferred(
-          (
-            (taskSnapshot.bytesTransferred / taskSnapshot.totalBytes) *
-            100
-          ).toFixed(0)
+          Math.round(
+            (taskSnapshot.bytesTransferred / taskSnapshot.totalBytes) * 100
+          )
         );
       });
 
@@ -251,30 +279,27 @@ const ClientDetailsScreen = ({ route, navigation }) => {
         await task;
 
         const url = await storageRef.getDownloadURL();
-
+        setURLs((prevState) => [...prevState, url]);
+        // console.log("url downloaded", url);
         // navigation.goBack();
         setUploading(false);
-        addNote(title, text, id);
-        setText("");
-        setTitle("");
-        setImages([]);
-        Alert.alert("Nota Guardado!", "La nota se ha guardado exitosamente!");
-        setTimeout(() => {
-          setNoteModal(false);
-          setEditMode(false);
-          fetchMemberNotes();
-        }, 1000);
         return url;
       } catch (e) {
         console.log(e);
         return null;
       }
+
+      // alert("done");
     });
+    const results = await Promise.all(promises);
+    return results;
+    // console.log("this is results", results);
+    // alert("done");
   };
 
   const saveNoteHandler = async () => {
     if (!editMode) {
-      await submitChanges();
+      submitChanges();
     } else {
       editNote(title, text, id, noteDetailId);
       setNoteModal(false);
@@ -461,7 +486,7 @@ const ClientDetailsScreen = ({ route, navigation }) => {
               </View>
               <View style={{ height: 100, width: "100%" }}>
                 <TextInput
-                  multiline
+                  // multiline
                   underlineColor={Colors.primary}
                   activeUnderlineColor={Colors.primary}
                   label="Nota"
@@ -544,7 +569,16 @@ const ClientDetailsScreen = ({ route, navigation }) => {
           <View style={styles.modalView}>
             <Headline>{noteDetailTitle}</Headline>
             <Paragraph>{noteDetailNote}</Paragraph>
-            <View style={{ marginTop: 100 }}>
+            <View>
+              <ActivityIndicator size={"small"} color={Colors.primary} />
+              <Text>Cargando imagenes</Text>
+            </View>
+            {images.length > 0 && (
+              <ScrollView horizontal style={{ height: 220, width: "100%" }}>
+                <ImageRow />
+              </ScrollView>
+            )}
+            <View style={{ marginTop: 20 }}>
               <TouchableOpacity
                 style={[styles.button, styles.buttonClose]}
                 onPress={() => {
@@ -785,10 +819,11 @@ const ClientDetailsScreen = ({ route, navigation }) => {
                   key={note.key}
                   title={note.title}
                   onSelect={() => {
-                    setNoteDetailModal(true);
+                    setImages(note.url);
                     setNoteDetailTitle(note.title);
                     setNoteDetailNote(note.note);
                     setNoteDetailId(note.key);
+                    setNoteDetailModal(true);
                     //   itemData.item.key,
                     //   itemData.item.title,
                     //   itemData.item.timeStamp
