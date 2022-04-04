@@ -13,6 +13,7 @@ import {
   Dimensions,
   TouchableOpacity,
   Button,
+  ActivityIndicator,
 } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import Colors from "../constants/Colors";
@@ -27,8 +28,10 @@ import NoteBlock from "../components/NoteBlock";
 import { Ionicons } from "@expo/vector-icons";
 import { TextInput, HelperText, Headline, Paragraph } from "react-native-paper";
 import OrientationLoadingOverlay from "react-native-orientation-loading-overlay";
-import ActionSheet from "react-native-actions-sheet";
+import ActionSheet, { SheetManager } from "react-native-actions-sheet";
 import * as ImagePicker from "expo-image-picker";
+// import ImageView from "react-native-image-viewing";
+import ImageViewer from "react-native-image-zoom-viewer";
 
 const actionSheetRef = createRef();
 
@@ -40,7 +43,12 @@ const ClientDetailsScreen = ({ route, navigation }) => {
   const [userNotes, setUserNotes] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [image, setImage] = useState(null);
+  const [images, setImages] = useState([]);
   const [userInfo, setUserInfo] = useState([]);
+  const [visible, setIsVisible] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [transferred, setTransferred] = useState();
+  const [URLs, setURLs] = useState();
 
   const [notify, setNotify] = useState(false);
   const [selectedClient, setSelectedClient] = useState(false);
@@ -85,7 +93,7 @@ const ClientDetailsScreen = ({ route, navigation }) => {
       }
       // }
     })();
-    console.log("this the selected", selectedClient.clientData);
+    // console.log("this the selected", selectedClient.clientData);
   }, []);
   useFocusEffect(
     React.useCallback(() => {
@@ -141,17 +149,38 @@ const ClientDetailsScreen = ({ route, navigation }) => {
       fetchClientDetails();
     }, [])
   );
+
+  const ImageRow = () => {
+    return images.map((image, index) => {
+      return (
+        <TouchableOpacity onPress={() => setIsVisible(true)}>
+          <Image
+            key={index.toString()}
+            style={{
+              height: 200,
+              width: 200,
+              marginHorizontal: 5,
+              borderRadius: 2,
+            }}
+            source={{
+              uri: image,
+            }}
+          />
+        </TouchableOpacity>
+      );
+    });
+  };
   const takePhotoFromCamera = async () => {
     let result = await ImagePicker.launchCameraAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [4, 3],
+      // allowsEditing: true,
+      // aspect: [4, 3],
       quality: 0.7,
     });
     console.log(result);
 
     if (!result.cancelled) {
-      setImage(result.uri);
+      setImages((prevState) => [...prevState, result.uri]);
       actionSheetRef.current?.hide();
     }
   };
@@ -160,14 +189,14 @@ const ClientDetailsScreen = ({ route, navigation }) => {
     console.log("opening gallery");
     let result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [4, 3],
-      quality: 0.7,
+      // allowsEditing: false,
+      // aspect: [4, 3],
+      quality: 0.3,
     });
     console.log(result);
 
     if (!result.cancelled) {
-      setImage(result.uri);
+      setImages((prevState) => [...prevState, result.uri]);
       actionSheetRef.current?.hide();
     }
   };
@@ -180,83 +209,82 @@ const ClientDetailsScreen = ({ route, navigation }) => {
     if (imageUrl == null && userInfo.userImg == null) {
       imageUrl = null;
     }
-
-    await editClient(userInfo, imageUrl);
-
-    if (image == null) {
-      Alert.alert(
-        "Cliente Actualizado!",
-        "El Cliente se ha actualizado exitosamente!"
-      );
-    }
-
-    navigation.goBack();
   };
 
   const uploadImage = async () => {
-    if (image == null) {
+    if (images.length === 0) {
       console.log("image is null");
       return null;
     }
-    // const uploadUri = image;
-    const response = await fetch(image);
-    const blob = await response.blob();
-    // let fileName = uploadUri.substring(uploadUri.lastIndexOf("/") + 1);
+    images.map(async (file, index) => {
+      console.log("loop");
+      const response = await fetch(file);
+      const blob = await response.blob();
 
-    setUploading(true);
-    setTransferred(0);
-    const storageRef = firebase
-      .storage()
-      .ref()
-      .child("UserProfileImages/" + `${user.uid}/` + "ProfileImage");
+      setUploading(true);
+      setTransferred(0);
 
-    const task = storageRef.put(blob);
+      const storageRef = firebase
+        .storage()
+        .ref()
+        .child("sessionNotesImgs/" + `${id}/` + `${title}/` + `${index}`);
 
-    // Set transferred state
-    task.on("state_changed", (taskSnapshot) => {
-      console.log(
-        `${taskSnapshot.bytesTransferred} transferred out of ${taskSnapshot.totalBytes}`
-      );
-      setTransferred(
-        (
-          (taskSnapshot.bytesTransferred / taskSnapshot.totalBytes) *
-          100
-        ).toFixed(0)
-      );
+      // const uploadUri = image;
+      // let fileName = uploadUri.substring(uploadUri.lastIndexOf("/") + 1);
+
+      const task = storageRef.put(blob);
+
+      // Set transferred state
+      task.on("state_changed", (taskSnapshot) => {
+        console.log(
+          `${taskSnapshot.bytesTransferred} transferred out of ${taskSnapshot.totalBytes}`
+        );
+        setTransferred(
+          (
+            (taskSnapshot.bytesTransferred / taskSnapshot.totalBytes) *
+            100
+          ).toFixed(0)
+        );
+      });
+
+      try {
+        await task;
+
+        const url = await storageRef.getDownloadURL();
+
+        // navigation.goBack();
+        setUploading(false);
+        addNote(title, text, id);
+        setText("");
+        setTitle("");
+        setImages([]);
+        Alert.alert("Nota Guardado!", "La nota se ha guardado exitosamente!");
+        setTimeout(() => {
+          setNoteModal(false);
+          setEditMode(false);
+          fetchMemberNotes();
+        }, 1000);
+        return url;
+      } catch (e) {
+        console.log(e);
+        return null;
+      }
     });
-
-    try {
-      await task;
-
-      const url = await storageRef.getDownloadURL();
-
-      setUploading(false);
-      Alert.alert(
-        "Cliente Actualizado!",
-        "El Cliente se ha actualizado exitosamente!"
-      );
-
-      navigation.goBack();
-      return url;
-    } catch (e) {
-      console.log(e);
-      return null;
-    }
   };
 
-  const saveNoteHandler = () => {
+  const saveNoteHandler = async () => {
     if (!editMode) {
-      addNote(title, text, id);
+      await submitChanges();
     } else {
       editNote(title, text, id, noteDetailId);
+      setNoteModal(false);
+      setText("");
+      setTitle("");
+      setEditMode(false);
+      setTimeout(() => {
+        fetchMemberNotes();
+      }, 1000);
     }
-    setNoteModal(false);
-    setText("");
-    setTitle("");
-    setEditMode(false);
-    setTimeout(() => {
-      fetchMemberNotes();
-    }, 1000);
   };
 
   const fetchMemberNotes = async () => {
@@ -356,7 +384,18 @@ const ClientDetailsScreen = ({ route, navigation }) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ActionSheet ref={actionSheetRef} bounceOnOpen={true}>
+      {/* <Modal visible={visible} transparent={true}>
+        <ImageViewer imageUrls={images} enableSwipeDown />
+      </Modal> */}
+      {/* <ImageViewer
+        imageUrls={images}
+        images={images}
+        keyExtractor={(image, index) => index.toString()}
+        imageIndex={0}
+        visible={visible}
+        onRequestClose={() => setIsVisible(false)}
+      /> */}
+      <ActionSheet id="actionSheetRefImg" bounceOnOpen={true}>
         <View style={{ alignItems: "center" }}>
           <Text style={styles.panelTitle}>Subir Foto</Text>
           <Text style={styles.panelSubtitle}>Eligir Foto de Perfil</Text>
@@ -377,7 +416,7 @@ const ClientDetailsScreen = ({ route, navigation }) => {
         <TouchableOpacity
           style={styles.panelButton}
           onPress={() => {
-            actionSheetRef.current?.hide();
+            SheetManager.hide("actionSheetRefImg");
           }}
         >
           <Text style={styles.panelButtonTitle}>Cancelar</Text>
@@ -402,67 +441,96 @@ const ClientDetailsScreen = ({ route, navigation }) => {
           setTextIsValid(true);
         }}
       >
-        <View style={styles.centeredView}>
-          <View style={styles.modalView}>
-            <View style={{ height: 100, width: "100%" }}>
-              <TextInput
-                underlineColor={Colors.primary}
-                activeUnderlineColor={Colors.primary}
-                label="Titulo"
-                value={title}
-                maxLength={20}
-                onChangeText={(text) => hasErrors(text)}
-                right={<TextInput.Affix text={`${title.length}/20`} />}
-                error={!titleIsValid}
-              />
-              <HelperText type="error" visible={!titleIsValid}>
-                El titulo es muy corto!
-              </HelperText>
-            </View>
-            <View style={{ height: 100, width: "100%" }}>
-              <TextInput
-                multiline
-                underlineColor={Colors.primary}
-                activeUnderlineColor={Colors.primary}
-                label="Nota"
-                value={text}
-                onChangeText={(text) => hasErrorsNote(text)}
-                error={!textIsValid}
-              />
-              <HelperText type="error" visible={!textIsValid}>
-                Las notas deben ser minimo 5 caracteres!
-              </HelperText>
-            </View>
-            <View style={{ marginTop: 50 }}>
+        <ScrollView>
+          <View style={styles.centeredView}>
+            <View style={styles.modalView}>
+              <View style={{ height: 100, width: "100%" }}>
+                <TextInput
+                  underlineColor={Colors.primary}
+                  activeUnderlineColor={Colors.primary}
+                  label="Titulo"
+                  value={title}
+                  maxLength={20}
+                  onChangeText={(text) => hasErrors(text)}
+                  right={<TextInput.Affix text={`${title.length}/20`} />}
+                  error={!titleIsValid}
+                />
+                <HelperText type="error" visible={!titleIsValid}>
+                  El titulo es muy corto!
+                </HelperText>
+              </View>
+              <View style={{ height: 100, width: "100%" }}>
+                <TextInput
+                  multiline
+                  underlineColor={Colors.primary}
+                  activeUnderlineColor={Colors.primary}
+                  label="Nota"
+                  value={text}
+                  onChangeText={(text) => hasErrorsNote(text)}
+                  error={!textIsValid}
+                />
+                <HelperText type="error" visible={!textIsValid}>
+                  Las notas deben ser minimo 5 caracteres!
+                </HelperText>
+              </View>
+              <ScrollView horizontal style={{ height: 220, width: "100%" }}>
+                <ImageRow />
+              </ScrollView>
+              {/* <Image
+                source={{ uri: `${image}` }}
+                style={{ height: 200, width: 200 }}
+              /> */}
+              {uploading && (
+                <View>
+                  <ActivityIndicator size="large" color={Colors.primary} />
+                  <Text>Subiendo</Text>
+                </View>
+              )}
               <TouchableOpacity
-                style={[styles.button, styles.buttonClose]}
-                onPress={() => {
-                  setText("");
-                  setTitle("");
-                  setNoteModal(false);
-                  setTitleIsValid(true);
-                  setTextIsValid(true);
-                }}
+                style={styles.panelButtonModal}
+                onPress={takePhotoFromCamera}
               >
-                <Text style={styles.textStyle}>Cancelar</Text>
+                <Text style={styles.panelButtonTitleModal}>Abrir Camara</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                disabled={!titleIsValid || text.length < 5}
-                style={[
-                  styles.button,
-                  title.length >= 2 && text.length >= 5
-                    ? styles.buttonOpen
-                    : styles.buttonDisabled,
-                ]}
-                onPress={() => {
-                  saveNoteHandler();
-                }}
+                style={styles.panelButtonModal}
+                onPress={choosePhotoFromLibrary}
               >
-                <Text style={styles.textStyle}>Guardar</Text>
+                <Text style={styles.panelButtonTitleModal}>Abrir Galeria</Text>
               </TouchableOpacity>
+              <View style={{ marginTop: 10 }}>
+                <TouchableOpacity
+                  style={[styles.button, styles.buttonClose]}
+                  onPress={() => {
+                    setText("");
+                    setTitle("");
+                    setNoteModal(false);
+                    setUploading(false);
+                    setTitleIsValid(true);
+                    setTextIsValid(true);
+                    setImages([]);
+                  }}
+                >
+                  <Text style={styles.textStyle}>Cancelar</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  disabled={!titleIsValid || text.length < 5}
+                  style={[
+                    styles.button,
+                    title.length >= 2 && text.length >= 5
+                      ? styles.buttonOpen
+                      : styles.buttonDisabled,
+                  ]}
+                  onPress={() => {
+                    saveNoteHandler();
+                  }}
+                >
+                  <Text style={styles.textStyle}>Guardar</Text>
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
-        </View>
+        </ScrollView>
       </Modal>
       <Modal
         animationType="slide"
@@ -674,7 +742,7 @@ const ClientDetailsScreen = ({ route, navigation }) => {
                 shadowOpacity: 0.26,
                 shadowOffset: { width: 0, height: 2 },
                 shadowRadius: 5,
-                elevation: 5,
+                // elevation: 1,
               }}
             >
               <Ionicons
@@ -727,7 +795,7 @@ const ClientDetailsScreen = ({ route, navigation }) => {
                     // );
                   }}
                   longPress={() => {
-                    deleteHandler(itemData.item.key);
+                    deleteHandler(note.key);
                   }}
                 />
               );
@@ -960,6 +1028,11 @@ const styles = StyleSheet.create({
     shadowRadius: 5,
     elevation: 5,
   },
+  imgButton: {
+    color: Colors.primary,
+    fontSize: 18,
+    marginBottom: 5,
+  },
   centeredView: {
     flex: 1,
     justifyContent: "center",
@@ -968,11 +1041,12 @@ const styles = StyleSheet.create({
   },
   modalView: {
     width: "80%",
-    height: "50%",
+    // height: "80%",
+    flex: 1,
     margin: 20,
     backgroundColor: "white",
     borderRadius: 20,
-    padding: 25,
+    padding: 15,
     alignItems: "center",
     shadowColor: "#000",
     shadowOffset: {
@@ -991,18 +1065,25 @@ const styles = StyleSheet.create({
   buttonOpen: {
     marginTop: 10,
     backgroundColor: Colors.primary,
+    borderRadius: 10,
+    width: 150,
   },
   buttonDisabled: {
     marginTop: 10,
     backgroundColor: "grey",
+    borderRadius: 10,
+    width: 150,
   },
   buttonClose: {
     backgroundColor: "red",
+    width: 150,
+    borderRadius: 10,
   },
   textStyle: {
     color: "white",
     fontWeight: "bold",
     textAlign: "center",
+    fontSize: 17,
   },
   modalText: {
     marginBottom: 15,
@@ -1038,6 +1119,20 @@ const styles = StyleSheet.create({
     width: 200,
   },
   panelButtonTitle: {
+    fontSize: 25,
+    fontWeight: "bold",
+    color: "white",
+  },
+  panelButtonModal: {
+    padding: 13,
+    borderRadius: 10,
+    backgroundColor: Colors.primary,
+    alignItems: "center",
+    alignSelf: "center",
+    marginVertical: 7,
+    width: 150,
+  },
+  panelButtonTitleModal: {
     fontSize: 17,
     fontWeight: "bold",
     color: "white",

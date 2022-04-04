@@ -106,7 +106,6 @@ const DrawerContent = (props) => {
                 // console.log("date diffs", dateDiff);
               });
             });
-          console.log(list.length);
           // setClientList(list);
           setClientList(list.length);
         } catch (e) {
@@ -160,7 +159,6 @@ const DrawerContent = (props) => {
     }, [])
   );
 
-  console.log("drawer");
   return (
     <View style={{ flex: 1 }}>
       <DrawerContentScrollView
