@@ -159,7 +159,7 @@ const ClientDetailsScreen = ({ route, navigation }) => {
         return (
           <TouchableOpacity
             key={index.toString()}
-            onPress={() => setIsVisible(true)}
+            // onPress={() => setIsVisible(true)}
           >
             <Image
               style={{
@@ -168,8 +168,21 @@ const ClientDetailsScreen = ({ route, navigation }) => {
                 marginHorizontal: 5,
                 borderRadius: 2,
               }}
-              onLoadStart={() => setImageLoading(true)}
-              onLoadEnd={() => setImageLoading(false)}
+              source={{
+                uri: image,
+              }}
+              onLoadStart={setImageLoading(true)}
+              onLoadEnd={setImageLoading(false)}
+              // onProgress={(loaded) => {
+              //   console.log(
+              //     "this is tot",
+              //     Math.round(
+              //       loaded.nativeEvent.total / loaded.nativeEvent.total
+              //     ) * 100
+              //   );
+              //   // console.log("this is this is total", total);
+              // }}
+              // onLoad={() => setImageLoading(false)}
               // onProgress={(progress) =>
               //   setProgress(
               //     Math.round(
@@ -177,10 +190,8 @@ const ClientDetailsScreen = ({ route, navigation }) => {
               //     ) * 100
               //   )
               // }
-              source={{
-                uri: image,
-              }}
             />
+            {/* {imageLoading && <ActivityIndicator color="black" size="large" />} */}
           </TouchableOpacity>
         );
       });
@@ -569,11 +580,14 @@ const ClientDetailsScreen = ({ route, navigation }) => {
           <View style={styles.modalView}>
             <Headline>{noteDetailTitle}</Headline>
             <Paragraph>{noteDetailNote}</Paragraph>
-            <View>
-              <ActivityIndicator size={"small"} color={Colors.primary} />
-              <Text>Cargando imagenes</Text>
-            </View>
-            {images.length > 0 && (
+            {imageLoading && (
+              <View>
+                <ActivityIndicator size={"small"} color={Colors.primary} />
+                <Text>Cargando imagenes</Text>
+              </View>
+            )}
+            {images != null && (
+              // {images.length > 0 && (
               <ScrollView horizontal style={{ height: 220, width: "100%" }}>
                 <ImageRow />
               </ScrollView>
