@@ -51,6 +51,7 @@ const ClientDetailsScreen = ({ route, navigation }) => {
   const [transferred, setTransferred] = useState();
   const [URLs, setURLs] = useState([]);
   const [progress, setProgress] = useState([]);
+  const [imgView, setImgView] = useState([]);
 
   const [notify, setNotify] = useState(false);
   const [selectedClient, setSelectedClient] = useState(false);
@@ -152,14 +153,26 @@ const ClientDetailsScreen = ({ route, navigation }) => {
       fetchClientDetails();
     }, [])
   );
+  const onFinish = (e) => {
+    // console.log("this e", e);
+    setImageLoading(false);
+  };
+  const onStart = () => {
+    // setImageLoading(true);
+    console.log("started?", imageLoading);
+  };
 
   const ImageRow = () => {
     if (images.length > 0) {
+      console.log(imgView);
       return images.map((image, index) => {
         return (
           <TouchableOpacity
             key={index.toString()}
-            // onPress={() => setIsVisible(true)}
+            onPress={() => {
+              setNoteDetailModal(false);
+              setIsVisible(true);
+            }}
           >
             <Image
               style={{
@@ -171,13 +184,15 @@ const ClientDetailsScreen = ({ route, navigation }) => {
               source={{
                 uri: image,
               }}
-              onLoadStart={setImageLoading(true)}
-              onLoadEnd={setImageLoading(false)}
+              // onLoadStart={onStart()}
+              onLoadEnd={() => {
+                onFinish();
+              }}
               // onProgress={(loaded) => {
               //   console.log(
               //     "this is tot",
               //     Math.round(
-              //       loaded.nativeEvent.total / loaded.nativeEvent.total
+              //       loaded.nativeEvent.loaded / loaded.nativeEvent.total
               //     ) * 100
               //   );
               //   // console.log("this is this is total", total);
@@ -420,9 +435,9 @@ const ClientDetailsScreen = ({ route, navigation }) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* <Modal visible={visible} transparent={true}>
-        <ImageViewer imageUrls={images} enableSwipeDown />
-      </Modal> */}
+      <Modal visible={visible} transparent={true}>
+        <ImageViewer imageUrls={imgView} enableSwipeDown />
+      </Modal>
       {/* <ImageViewer
         imageUrls={images}
         images={images}
@@ -833,6 +848,17 @@ const ClientDetailsScreen = ({ route, navigation }) => {
                   key={note.key}
                   title={note.title}
                   onSelect={() => {
+                    if (note.url != null) {
+                      setImageLoading(true);
+                    }
+                    setImgView(
+                      Object.keys(Object.assign({ url: note.url[0] })).map(
+                        (key) => {
+                          return Object.assign({ url: note.url[0] })[key];
+                        }
+                      )
+                    );
+
                     setImages(note.url);
                     setNoteDetailTitle(note.title);
                     setNoteDetailNote(note.note);
