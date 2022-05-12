@@ -420,6 +420,20 @@ export const AuthProvider = ({ children, navigation }) => {
             console.log(e);
           }
         },
+        userProfilePic: async (userId, userImg) => {
+          try {
+            await db.doc(userId).set(
+              {
+                userImg,
+              },
+              { merge: true }
+            );
+          } catch (e) {
+            const errorMes = firebaseErrors[e.code];
+            alert(errorMes);
+            console.log(errorMes);
+          }
+        },
         deleteEventFB: async (value, helper) => {
           // console.log(value);
           console.log(helper);

@@ -1,5 +1,5 @@
 Arguments: 
-  /usr/local/Cellar/node/17.3.1/bin/node /usr/local/Cellar/yarn/1.22.5/libexec/bin/yarn.js add expo-updates@~0.11.7
+  /usr/local/Cellar/node/17.3.1/bin/node /usr/local/Cellar/yarn/1.22.5/libexec/bin/yarn.js add react-native-tiny-toast
 
 PATH: 
   /usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/Library/Apple/usr/bin:/Users/carloscraig/Library/Android/sdk/emulator:/Users/carloscraig/Library/Android/sdk/tools:/Users/carloscraig/Library/Android/sdk/tools/bin:/Users/carloscraig/Library/Android/sdk/platform-tools:/Users/carloscraig/Library/Android/sdk/emulator:/Users/carloscraig/Library/Android/sdk/tools:/Users/carloscraig/Library/Android/sdk/tools/bin:/Users/carloscraig/Library/Android/sdk/platform-tools
@@ -14,8 +14,17 @@ Platform:
   darwin x64
 
 Trace: 
-  Error: getaddrinfo ENOTFOUND registry.npmjs.org
-      at GetAddrInfoReqWrap.onlookup [as oncomplete] (node:dns:72:26)
+  Error: connect EHOSTUNREACH 2606:4700::6810:1123:443 - Local (:::49914)
+      at internalConnect (node:net:931:16)
+      at defaultTriggerAsyncIdScope (node:internal/async_hooks:456:18)
+      at emitLookup (node:net:1075:9)
+      at /usr/local/Cellar/yarn/1.22.5/libexec/lib/cli.js:107524:28
+      at /usr/local/Cellar/yarn/1.22.5/libexec/lib/cli.js:107433:13
+      at RawTask.module.exports.RawTask.call (/usr/local/Cellar/yarn/1.22.5/libexec/lib/cli.js:83614:19)
+      at flush (/usr/local/Cellar/yarn/1.22.5/libexec/lib/cli.js:83696:29)
+      at processTicksAndRejections (node:internal/process/task_queues:78:11)
+      at runNextTicks (node:internal/process/task_queues:65:3)
+      at processImmediate (node:internal/timers:444:9)
 
 npm manifest: 
   {
@@ -64,6 +73,7 @@ npm manifest:
       "react-native-booking-calendar": "^1.1.0",
       "react-native-calendars": "^1.1269.0",
       "react-native-elements": "^3.4.2",
+      "react-native-fast-image": "^8.5.11",
       "react-native-gesture-handler": "~2.1.0",
       "react-native-image-viewing": "^0.2.1",
       "react-native-image-zoom-viewer": "^3.0.1",
@@ -5759,6 +5769,11 @@ Lockfile:
       opencollective-postinstall "^2.0.3"
       react-native-ratings "8.0.4"
       react-native-size-matters "^0.3.1"
+  
+  react-native-fast-image@^8.5.11:
+    version "8.5.11"
+    resolved "https://registry.yarnpkg.com/react-native-fast-image/-/react-native-fast-image-8.5.11.tgz#e3dc969d0e4e8df026646bf18194465aa55cbc2b"
+    integrity sha512-cNW4bIJg3nvKaheG8vGMfqCt5LMWX9MS5+wMudgKIHbGO51spRr4sgnlhVgwHLcZ5aeNOVJ8CPRxDIWKRq/0QA==
   
   react-native-gesture-handler@~2.1.0:
     version "2.1.1"

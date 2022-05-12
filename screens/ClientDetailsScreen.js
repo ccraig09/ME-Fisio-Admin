@@ -32,12 +32,18 @@ import ActionSheet, { SheetManager } from "react-native-actions-sheet";
 import * as ImagePicker from "expo-image-picker";
 // import ImageView from "react-native-image-viewing";
 import ImageViewer from "react-native-image-zoom-viewer";
+import Toast from "react-native-tiny-toast";
 
 const actionSheetRef = createRef();
 
 const ClientDetailsScreen = ({ route, navigation }) => {
-  const { userNotificationReceipt, addNote, deleteNote, editNote } =
-    useContext(AuthContext);
+  const {
+    userNotificationReceipt,
+    addNote,
+    deleteNote,
+    editNote,
+    userProfilePic,
+  } = useContext(AuthContext);
 
   const { id, data } = route.params;
   const [userNotes, setUserNotes] = useState([]);
@@ -51,8 +57,10 @@ const ClientDetailsScreen = ({ route, navigation }) => {
   const [transferred, setTransferred] = useState();
   const [URLs, setURLs] = useState([]);
   const [progress, setProgress] = useState([]);
-  const [imgView, setImgView] = useState([]);
+  const [imgView, setImgView] = useState();
 
+  // const [editMode, setEditMode] = useState(false);
+  const [updatingImg, setUpdatingImg] = useState(false);
   const [notify, setNotify] = useState(false);
   const [selectedClient, setSelectedClient] = useState(false);
   const [noteModal, setNoteModal] = useState(false);
@@ -68,6 +76,7 @@ const ClientDetailsScreen = ({ route, navigation }) => {
   const [titleIsValid, setTitleIsValid] = useState(true);
   const [textIsValid, setTextIsValid] = useState(true);
   const [editMode, setEditMode] = useState(false);
+  const [profileImg, setProfileImg] = useState("");
 
   const testList = [
     { title: "Informacion de Cliente", screen: "Info", key: 1 },
@@ -153,7 +162,7 @@ const ClientDetailsScreen = ({ route, navigation }) => {
       fetchClientDetails();
     }, [])
   );
-  const onFinish = (e) => {
+  const onFinish = () => {
     // console.log("this e", e);
     setImageLoading(false);
   };
@@ -164,12 +173,13 @@ const ClientDetailsScreen = ({ route, navigation }) => {
 
   const ImageRow = () => {
     if (images.length > 0) {
-      console.log(imgView);
       return images.map((image, index) => {
         return (
           <TouchableOpacity
             key={index.toString()}
             onPress={() => {
+              setImgView(Object.assign([{ url: image }]));
+              setNoteModal(false);
               setNoteDetailModal(false);
               setIsVisible(true);
             }}
@@ -185,9 +195,9 @@ const ClientDetailsScreen = ({ route, navigation }) => {
                 uri: image,
               }}
               // onLoadStart={onStart()}
-              onLoadEnd={() => {
-                onFinish();
-              }}
+              // onLoadEnd={() => {
+              //   onFinish();
+              // }}
               // onProgress={(loaded) => {
               //   console.log(
               //     "this is tot",
@@ -197,15 +207,35 @@ const ClientDetailsScreen = ({ route, navigation }) => {
               //   );
               //   // console.log("this is this is total", total);
               // }}
-              // onLoad={() => setImageLoading(false)}
-              // onProgress={(progress) =>
-              //   setProgress(
-              //     Math.round(
-              //       progress.nativeEvent.loaded / progress.nativeEvent.total
-              //     ) * 100
-              //   )
-              // }
             />
+            {!editMode && (
+              <CloseView>
+                <TouchableOpacity
+                  onPress={() => {
+                    Alert.alert(
+                      "Borrar imagen?",
+                      "Quiere borrar esta imagen?",
+                      [
+                        { text: "No", style: "default" },
+                        {
+                          text: "Si",
+                          style: "destructive",
+                          onPress: () => {
+                            setImages([
+                              ...images.slice(0, index),
+                              ...images.slice(index + 1, images.length),
+                            ]);
+                          },
+                        },
+                      ]
+                    );
+                  }}
+                  // style={{ padding: 20 }}
+                >
+                  <Ionicons name="ios-close" size={20} color="black" />
+                </TouchableOpacity>
+              </CloseView>
+            )}
             {/* {imageLoading && <ActivityIndicator color="black" size="large" />} */}
           </TouchableOpacity>
         );
@@ -224,13 +254,19 @@ const ClientDetailsScreen = ({ route, navigation }) => {
     console.log(result);
 
     if (!result.cancelled) {
-      setImages((prevState) => [...prevState, result.uri]);
-      actionSheetRef.current?.hide();
+      if (noteModal) {
+        setImages([...images, result.uri]);
+      } else {
+        const toast = Toast.showLoading("Subieno Foto");
+        setProfileImg(result.uri);
+        await userProfilePic(id, result.uri);
+        SheetManager.hide("actionSheetRefImg");
+        Toast.hide(toast);
+      }
     }
   };
 
   const choosePhotoFromLibrary = async () => {
-    console.log("opening gallery");
     let result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       // allowsEditing: false,
@@ -240,8 +276,15 @@ const ClientDetailsScreen = ({ route, navigation }) => {
     console.log(result);
 
     if (!result.cancelled) {
-      setImages((prevState) => [...prevState, result.uri]);
-      actionSheetRef.current?.hide();
+      if (noteModal) {
+        setImages([...images, result.uri]);
+      } else {
+        const toast = Toast.showLoading("Subiendo foto");
+        setProfileImg(result.uri);
+        await userProfilePic(id, result.uri);
+        SheetManager.hide("actionSheetRefImg");
+        Toast.hide(toast);
+      }
     }
   };
   const finishHandler = (urls) => {
@@ -436,16 +479,19 @@ const ClientDetailsScreen = ({ route, navigation }) => {
   return (
     <SafeAreaView style={styles.container}>
       <Modal visible={visible} transparent={true}>
-        <ImageViewer imageUrls={imgView} enableSwipeDown />
+        <ImageViewer
+          imageUrls={imgView}
+          enableSwipeDown
+          onCancel={() => {
+            setIsVisible(false);
+            if (editMode) {
+              setNoteModal(true);
+            } else {
+              setNoteDetailModal(true);
+            }
+          }}
+        />
       </Modal>
-      {/* <ImageViewer
-        imageUrls={images}
-        images={images}
-        keyExtractor={(image, index) => index.toString()}
-        imageIndex={0}
-        visible={visible}
-        onRequestClose={() => setIsVisible(false)}
-      /> */}
       <ActionSheet id="actionSheetRefImg" bounceOnOpen={true}>
         <View style={{ alignItems: "center" }}>
           <Text style={styles.panelTitle}>Subir Foto</Text>
@@ -642,14 +688,16 @@ const ClientDetailsScreen = ({ route, navigation }) => {
             // avatarStyle={styles.userImg}
             size={150}
             icon={{ name: "user", type: "font-awesome" }}
-            source={{ uri: selectedClient.userImg }}
+            source={{
+              uri: !profileImg ? selectedClient.userImg : profileImg,
+            }}
           >
             <Avatar.Accessory
               name="pencil-outline"
               type="material-community"
               size={40}
               onPress={() => {
-                actionSheetRef.current?.setModalVisible();
+                SheetManager.show("actionSheetRefImg");
               }}
               // color="black"
             />
@@ -769,7 +817,10 @@ const ClientDetailsScreen = ({ route, navigation }) => {
             Alert.alert("Nueva Nota", "Quisieras agregar una nueva nota?", [
               {
                 text: "Si",
-                onPress: () => setNoteModal(true),
+                onPress: () => {
+                  setEditMode(true);
+                  setNoteModal(true);
+                },
               },
               {
                 text: "Cancelar",
@@ -851,13 +902,13 @@ const ClientDetailsScreen = ({ route, navigation }) => {
                     if (note.url != null) {
                       setImageLoading(true);
                     }
-                    setImgView(
-                      Object.keys(Object.assign({ url: note.url[0] })).map(
-                        (key) => {
-                          return Object.assign({ url: note.url[0] })[key];
-                        }
-                      )
-                    );
+
+                    // .map(
+                    //   (key) => {
+                    //     return Object.assign({ url: note.url[0] })[key];
+                    //   }
+                    // )
+                    // );
 
                     setImages(note.url);
                     setNoteDetailTitle(note.title);
@@ -1222,4 +1273,16 @@ const Subtitle = styled.Text`
   margin-top: 10px;
   margin-bottom: 10px;
   text-transform: uppercase;
+`;
+
+const CloseView = styled.View`
+  position: absolute;
+  top: 5px;
+  right: 12px;
+  background-color: white;
+  border-radius: 25px;
+  height: 30px;
+  width: 30px;
+  justify-content: center;
+  align-items: center;
 `;
