@@ -59,7 +59,6 @@ const ClientDetailsScreen = ({ route, navigation }) => {
   const [progress, setProgress] = useState([]);
   const [imgView, setImgView] = useState();
 
-  // const [editMode, setEditMode] = useState(false);
   const [updatingImg, setUpdatingImg] = useState(false);
   const [notify, setNotify] = useState(false);
   const [selectedClient, setSelectedClient] = useState(false);
@@ -76,6 +75,7 @@ const ClientDetailsScreen = ({ route, navigation }) => {
   const [titleIsValid, setTitleIsValid] = useState(true);
   const [textIsValid, setTextIsValid] = useState(true);
   const [editMode, setEditMode] = useState(false);
+  const [addMode, setAddMode] = useState(false);
   const [profileImg, setProfileImg] = useState("");
 
   const testList = [
@@ -167,7 +167,7 @@ const ClientDetailsScreen = ({ route, navigation }) => {
     setImageLoading(false);
   };
   const onStart = () => {
-    // setImageLoading(true);
+    setImageLoading(true);
     console.log("started?", imageLoading);
   };
 
@@ -194,10 +194,12 @@ const ClientDetailsScreen = ({ route, navigation }) => {
               source={{
                 uri: image,
               }}
-              // onLoadStart={onStart()}
-              // onLoadEnd={() => {
-              //   onFinish();
+              // onLoadStart={() => {
+              //   onStart();
               // }}
+              onLoadEnd={() => {
+                onFinish();
+              }}
               // onProgress={(loaded) => {
               //   console.log(
               //     "this is tot",
@@ -208,34 +210,27 @@ const ClientDetailsScreen = ({ route, navigation }) => {
               //   // console.log("this is this is total", total);
               // }}
             />
-            {!editMode && (
-              <CloseView>
-                <TouchableOpacity
-                  onPress={() => {
-                    Alert.alert(
-                      "Borrar imagen?",
-                      "Quiere borrar esta imagen?",
-                      [
-                        { text: "No", style: "default" },
-                        {
-                          text: "Si",
-                          style: "destructive",
-                          onPress: () => {
-                            setImages([
-                              ...images.slice(0, index),
-                              ...images.slice(index + 1, images.length),
-                            ]);
-                          },
-                        },
-                      ]
-                    );
-                  }}
-                  // style={{ padding: 20 }}
-                >
-                  <Ionicons name="ios-close" size={20} color="black" />
-                </TouchableOpacity>
+            {editMode || addMode ? (
+              <CloseView
+                onPress={() => {
+                  Alert.alert("Borrar imagen?", "Quiere borrar esta imagen?", [
+                    { text: "No", style: "default" },
+                    {
+                      text: "Si",
+                      style: "destructive",
+                      onPress: () => {
+                        setImages([
+                          ...images.slice(0, index),
+                          ...images.slice(index + 1, images.length),
+                        ]);
+                      },
+                    },
+                  ]);
+                }}
+              >
+                <Ionicons name="ios-close" size={25} color="black" />
               </CloseView>
-            )}
+            ) : null}
             {/* {imageLoading && <ActivityIndicator color="black" size="large" />} */}
           </TouchableOpacity>
         );
@@ -287,21 +282,27 @@ const ClientDetailsScreen = ({ route, navigation }) => {
       }
     }
   };
-  const finishHandler = (urls) => {
+  const finishHandler = async (urls) => {
+    // const toast = Toast.showLoading("Subieno");
     console.log("finishing");
     addNote(title, text, id, urls);
     setText("");
     setTitle("");
     setImages([]);
+
     Alert.alert("Nota Guardado!", "La nota se ha guardado exitosamente!");
     setTimeout(() => {
-      setNoteModal(false);
       setEditMode(false);
+      setAddMode(false);
       setURLs([]);
       fetchMemberNotes();
     }, 1000);
+    // Toast.hide(toast);
   };
   const submitChanges = async () => {
+    setNoteModal(false);
+
+    const toast = Toast.showLoading("Subiendo");
     if (images.length > 0) {
       let res = await uploadImage();
       console.log("this is res", res);
@@ -312,6 +313,7 @@ const ClientDetailsScreen = ({ route, navigation }) => {
       console.log("more this is 0");
       finishHandler(url);
     }
+    Toast.hide(toast);
   };
 
   const uploadImage = async () => {
@@ -319,7 +321,8 @@ const ClientDetailsScreen = ({ route, navigation }) => {
       const response = await fetch(file);
       const blob = await response.blob();
 
-      setUploading(true);
+      // setUploading(true);
+
       setTransferred(0);
 
       const storageRef = firebase
@@ -367,14 +370,23 @@ const ClientDetailsScreen = ({ route, navigation }) => {
   };
 
   const saveNoteHandler = async () => {
-    if (!editMode) {
+    if (!editMode || addMode) {
       submitChanges();
     } else {
-      editNote(title, text, id, noteDetailId);
+      if (images.length === 0) {
+        editNote(title, text, id, noteDetailId, null);
+      }
       setNoteModal(false);
+      const toast = Toast.showLoading("Subiendo");
+      await editNote(title, text, id, noteDetailId, images);
       setText("");
       setTitle("");
+      setImages([]);
       setEditMode(false);
+
+      Toast.hide(toast);
+      Alert.alert("Nota Guardado!", "La nota se ha guardado exitosamente!");
+
       setTimeout(() => {
         fetchMemberNotes();
       }, 1000);
@@ -393,12 +405,13 @@ const ClientDetailsScreen = ({ route, navigation }) => {
         .get()
         .then((querySnapshot) => {
           querySnapshot.forEach((doc) => {
-            const { title, ownerId, note, timeStamp } = doc.data();
+            const { title, ownerId, note, url, timeStamp } = doc.data();
             list.push({
               key: doc.id,
               title: title,
               note: note,
               ownerId: ownerId,
+              url: url,
               timeStamp: timeStamp,
             });
           });
@@ -453,29 +466,6 @@ const ClientDetailsScreen = ({ route, navigation }) => {
     }
   };
 
-  const NoteMap = () => {
-    userNotes.map((note) => {
-      return (
-        <NoteBlock
-          title={note.title}
-          onSelect={() => {
-            setNoteDetailModal(true);
-            setNoteDetailTitle(note.title);
-            setNoteDetailNote(note.note);
-            setNoteDetailId(note.key);
-            //   itemData.item.key,
-            //   itemData.item.title,
-            //   itemData.item.timeStamp
-            // );
-          }}
-          longPress={() => {
-            deleteHandler(itemData.item.key);
-          }}
-        />
-      );
-    });
-  };
-
   return (
     <SafeAreaView style={styles.container}>
       <Modal visible={visible} transparent={true}>
@@ -483,8 +473,9 @@ const ClientDetailsScreen = ({ route, navigation }) => {
           imageUrls={imgView}
           enableSwipeDown
           onCancel={() => {
+            setImgView([]);
             setIsVisible(false);
-            if (editMode) {
+            if (editMode || addMode) {
               setNoteModal(true);
             } else {
               setNoteDetailModal(true);
@@ -601,6 +592,8 @@ const ClientDetailsScreen = ({ route, navigation }) => {
                   onPress={() => {
                     setText("");
                     setTitle("");
+                    setEditMode(false);
+                    setAddMode(false);
                     setNoteModal(false);
                     setUploading(false);
                     setTitleIsValid(true);
@@ -644,7 +637,14 @@ const ClientDetailsScreen = ({ route, navigation }) => {
             {imageLoading && (
               <View>
                 <ActivityIndicator size={"small"} color={Colors.primary} />
-                <Text>Cargando imagenes</Text>
+                <Text>
+                  Cargando
+                  {images.length > 1 ? (
+                    <Text> {images.length} imagenes</Text>
+                  ) : (
+                    <Text> {images.length} imagen</Text>
+                  )}
+                </Text>
               </View>
             )}
             {images != null && (
@@ -657,6 +657,7 @@ const ClientDetailsScreen = ({ route, navigation }) => {
               <TouchableOpacity
                 style={[styles.button, styles.buttonClose]}
                 onPress={() => {
+                  setImages([]);
                   setNoteDetailModal(false);
                 }}
               >
@@ -666,8 +667,9 @@ const ClientDetailsScreen = ({ route, navigation }) => {
                 //   disabled={!titleIsValid || text.length < 10}
                 style={[styles.button, styles.buttonOpen]}
                 onPress={() => {
-                  setNoteDetailModal(false);
+                  console.log(images);
                   setEditMode(true);
+                  setNoteDetailModal(false);
                   setTitle(noteDetailTitle);
                   setText(noteDetailNote);
                   setTimeout(() => {
@@ -818,7 +820,7 @@ const ClientDetailsScreen = ({ route, navigation }) => {
               {
                 text: "Si",
                 onPress: () => {
-                  setEditMode(true);
+                  setAddMode(true);
                   setNoteModal(true);
                 },
               },
@@ -899,26 +901,16 @@ const ClientDetailsScreen = ({ route, navigation }) => {
                   key={note.key}
                   title={note.title}
                   onSelect={() => {
+                    setEditMode(false);
+                    setAddMode(false);
                     if (note.url != null) {
                       setImageLoading(true);
                     }
-
-                    // .map(
-                    //   (key) => {
-                    //     return Object.assign({ url: note.url[0] })[key];
-                    //   }
-                    // )
-                    // );
-
                     setImages(note.url);
                     setNoteDetailTitle(note.title);
                     setNoteDetailNote(note.note);
                     setNoteDetailId(note.key);
                     setNoteDetailModal(true);
-                    //   itemData.item.key,
-                    //   itemData.item.title,
-                    //   itemData.item.timeStamp
-                    // );
                   }}
                   longPress={() => {
                     deleteHandler(note.key);
@@ -926,30 +918,6 @@ const ClientDetailsScreen = ({ route, navigation }) => {
                 />
               );
             })}
-            {/* <FlatList
-              horizontal={true}
-              showsHorizontalScrollIndicator={false}
-              data={userNotes}
-              keyExtractor={(item) => item.key}
-              renderItem={(itemData) => (
-                <NoteBlock
-                  title={itemData.item.title}
-                  onSelect={() => {
-                    setNoteDetailModal(true);
-                    setNoteDetailTitle(itemData.item.title);
-                    setNoteDetailNote(itemData.item.note);
-                    setNoteDetailId(itemData.item.key);
-                    //   itemData.item.key,
-                    //   itemData.item.title,
-                    //   itemData.item.timeStamp
-                    // );
-                  }}
-                  longPress={() => {
-                    deleteHandler(itemData.item.key);
-                  }}
-                />
-              )}
-            /> */}
           </ScrollView>
         )}
         <Subtitle>{"Historia Clínica Fisioterapia".toUpperCase()}</Subtitle>
@@ -1275,14 +1243,15 @@ const Subtitle = styled.Text`
   text-transform: uppercase;
 `;
 
-const CloseView = styled.View`
+const CloseView = styled.TouchableOpacity`
   position: absolute;
   top: 5px;
   right: 12px;
   background-color: white;
   border-radius: 25px;
-  height: 30px;
-  width: 30px;
+  height: 40px;
+  width: 40px;
   justify-content: center;
   align-items: center;
+  box-shadow: 5px 5px 5px #888888;
 `;

@@ -252,14 +252,15 @@ export const AuthProvider = ({ children, navigation }) => {
             console.log(e);
           }
         },
-        editNote: async (title, text, id, noteId) => {
-          console.log("note being edited", title, text, id);
+        editNote: async (title, text, id, noteId, url) => {
+          console.log("note being edited", title, text, id, url);
           try {
             await db.doc(id).collection("Member Notes").doc(noteId).set(
               {
                 title: title,
                 note: text,
                 ownerId: id,
+                url: url,
                 // timestamp: firebase.firestore.FieldValue.serverTimestamp(),
               },
               { merge: true }
